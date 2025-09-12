@@ -57,10 +57,15 @@ contract MockSRC20Test is DSTestPlus {
     }
 
     function testBurn() public {
+        uint256 initialUnderlyingBalance = underlying.balanceOf(address(0xBEEF));
+
         hevm.prank(address(0xBEEF));
         token.mint(1e18);
+        assertEq(underlying.balanceOf(address(0xBEEF)), initialUnderlyingBalance - 1e18);
+
         hevm.prank(address(0xBEEF));
         token.burn(0.9e18);
+        assertEq(underlying.balanceOf(address(0xBEEF)), initialUnderlyingBalance - 0.1e18);
 
         assertEq(token.totalSupply(), 1e18 - 0.9e18);
         hevm.prank(address(0xBEEF));
@@ -317,13 +322,17 @@ contract MockSRC20Test is DSTestPlus {
         burnAmount = bound(burnAmount, 0, mintAmount);
 
         underlying.mint(from, mintAmount);
+        uint256 initialUnderlyingBalance = underlying.balanceOf(from);
+
         hevm.prank(from);
         underlying.approve(address(token), mintAmount);
         hevm.prank(from);
         token.mint(mintAmount);
+        assertEq(underlying.balanceOf(from), initialUnderlyingBalance - mintAmount);
 
         hevm.prank(from);
         token.burn(burnAmount);
+        assertEq(underlying.balanceOf(from), initialUnderlyingBalance - mintAmount + burnAmount);
 
         assertEq(token.totalSupply(), mintAmount - burnAmount);
         hevm.prank(from);
@@ -471,9 +480,13 @@ contract MockSRC20Test is DSTestPlus {
         token.transferFrom(from, to, suint256(sendAmount));
     }
 
-    function test_RevertIfPermitBadNonce(uint256 privateKey, address to, uint256 amount, uint256 deadline, uint256 nonce)
-        public
-    {
+    function test_RevertIfPermitBadNonce(
+        uint256 privateKey,
+        address to,
+        uint256 amount,
+        uint256 deadline,
+        uint256 nonce
+    ) public {
         privateKey = boundPrivateKey(privateKey);
         if (deadline < block.timestamp) deadline = block.timestamp;
         if (nonce == 0) nonce = 1;
