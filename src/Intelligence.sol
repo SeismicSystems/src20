@@ -20,8 +20,7 @@ contract Intelligence is Owned {
     }
 
     function encrypt(uint256 _keyIdx, bytes memory _plaintext) 
-        public
-        view 
+        public 
         returns (bytes memory) 
     {
         if (_keyIdx >= uint256(keys.length)) {
@@ -41,7 +40,6 @@ contract Intelligence is Owned {
 
     function encryptAll(bytes memory _plaintext) 
         public
-        view
         returns (bytes[] memory)
     {
         bytes[] memory ciphertextWithNonce = new bytes[](uint256(keys.length));

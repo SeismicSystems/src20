@@ -129,7 +129,7 @@ library AesLib {
         public
         returns (bytes memory)
     {
-        return abi.encodePacked(_nonce, _ciphertext);
+        return abi.encodePacked(_ciphertext, _nonce);
     }
 
     function splitNonce(bytes memory _ciphertextWithNonce)
