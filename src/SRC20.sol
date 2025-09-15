@@ -46,7 +46,6 @@ abstract contract SRC20 {
     //////////////////////////////////////////////////////////////*/
 
     ERC20 public immutable baseAsset;
-    bytes32[] private viewingKeyHash;
 
     /*//////////////////////////////////////////////////////////////
                             EIP-2612 STORAGE
