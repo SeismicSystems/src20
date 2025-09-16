@@ -38,17 +38,6 @@ contract Intelligence is Owned {
         return ciphertextWithNonce;
     }
 
-    function encryptAll(bytes memory _plaintext) 
-        public
-        returns (bytes[] memory)
-    {
-        bytes[] memory ciphertextWithNonce = new bytes[](uint256(keys.length));
-        for (uint256 i = 0; i < uint256(keys.length); i++) {
-            ciphertextWithNonce[i] = encrypt(i, _plaintext);
-        }
-        return ciphertextWithNonce;
-    }
-
     function decrypt(suint256 key, bytes memory _ciphertextWithNonce)
         public
         view
@@ -58,6 +47,17 @@ contract Intelligence is Owned {
             _ciphertextWithNonce
         );
         return AesLib.AES256GCMDecrypt(key, extractedNonce, extractedCT);
+    }
+
+    function encryptAll(bytes memory _plaintext) 
+        public
+        returns (bytes[] memory)
+    {
+        bytes[] memory ciphertextWithNonce = new bytes[](uint256(keys.length));
+        for (uint256 i = 0; i < uint256(keys.length); i++) {
+            ciphertextWithNonce[i] = encrypt(i, _plaintext);
+        }
+        return ciphertextWithNonce;
     }
 
     function addKey(suint256 _key) external onlyOwner {
