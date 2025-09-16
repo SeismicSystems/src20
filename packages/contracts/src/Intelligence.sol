@@ -27,37 +27,42 @@ contract Intelligence is Owned {
             revert KeyNotFound();
         }
 
+        bytes32 keyHash = keccak256(abi.encodePacked(keys[suint256(_keyIdx)]));
         bytes memory ciphertext = AesLib.AES256GCMEncrypt(
             keys[suint256(_keyIdx)],
             nonce, 
             _plaintext
         );
-        bytes memory ciphertextWithNonce = AesLib.packNonce(ciphertext, nonce);
+        bytes memory encryptedData = AesLib.packEncryptedData(
+            ciphertext, 
+            nonce, 
+            keyHash
+        );
         
         nonce++;
-        return ciphertextWithNonce;
+        return encryptedData;
     }
 
-    function decrypt(suint256 key, bytes memory _ciphertextWithNonce)
+    function decrypt(suint256 key, bytes memory _encryptedData)
         public
         view
         returns (bytes memory) 
     {
-        (bytes memory extractedCT, uint96 extractedNonce) = AesLib.splitNonce(
-            _ciphertextWithNonce
+        (bytes memory ct, uint96 nce, ) = AesLib.parseEncryptedData(
+            _encryptedData
         );
-        return AesLib.AES256GCMDecrypt(key, extractedNonce, extractedCT);
+        return AesLib.AES256GCMDecrypt(key, nce, ct);
     }
 
     function encryptAll(bytes memory _plaintext) 
         public
         returns (bytes[] memory)
     {
-        bytes[] memory ciphertextWithNonce = new bytes[](uint256(keys.length));
+        bytes[] memory encryptedData = new bytes[](uint256(keys.length));
         for (uint256 i = 0; i < uint256(keys.length); i++) {
-            ciphertextWithNonce[i] = encrypt(i, _plaintext);
+            encryptedData[i] = encrypt(i, _plaintext);
         }
-        return ciphertextWithNonce;
+        return encryptedData;
     }
 
     function addKey(suint256 _key) external onlyOwner {
