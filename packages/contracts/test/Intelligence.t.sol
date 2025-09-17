@@ -22,90 +22,47 @@ contract IntelligenceTest is Test {
         intelligence = new Intelligence(address(this), keys);
     }
 
-    function extractCT(bytes memory _encryptedData)
-        internal 
-        pure
-        returns (bytes memory ct)
-    {
-        (ct, ,) = AesLib.parseEncryptedData(_encryptedData);
+    function extractCT(bytes memory _encryptedData) internal pure returns (bytes memory ct) {
+        (ct,,) = AesLib.parseEncryptedData(_encryptedData);
     }
 
     function testEncrypt() public {
-        bytes memory encryptedData = intelligence.encrypt(
-            0,
-            sampleMsg
-        );
-        bytes memory directCiphertext = AesLib.AES256GCMEncrypt(
-            keys[suint256(0)],  
-            0,
-            sampleMsg
-        );
+        bytes memory encryptedData = intelligence.encrypt(0, sampleMsg);
+        bytes memory directCiphertext = AesLib.AES256GCMEncrypt(keys[suint256(0)], 0, sampleMsg);
 
-        assertEq(
-            extractCT(encryptedData), 
-            directCiphertext
-        );
+        console.logBytes(encryptedData);
+        console.logBytes(directCiphertext);
+
+        assertEq(extractCT(encryptedData), directCiphertext);
     }
 
     function testDecrypt() public {
-        bytes memory encryptedData = intelligence.encrypt(
-            0,
-            sampleMsg
-        );
-        bytes memory decryptResult = intelligence.decrypt(
-            keys[suint256(0)], 
-            encryptedData
-        );
+        bytes memory encryptedData = intelligence.encrypt(0, sampleMsg);
+        bytes memory decryptResult = intelligence.decrypt(keys[suint256(0)], encryptedData);
 
         assertEq(decryptResult, sampleMsg);
     }
 
     function testEncryptAll() public {
-        bytes[] memory encryptedData = intelligence.encryptAll(
-            sampleMsg
-        );
+        bytes[] memory encryptedData = intelligence.encryptAll(sampleMsg);
 
         bytes[] memory directCiphertext = new bytes[](2);
-        directCiphertext[0] = AesLib.AES256GCMEncrypt(
-            keys[suint256(0)], 
-            0,
-            sampleMsg
-        );
-        directCiphertext[1] = AesLib.AES256GCMEncrypt(
-            keys[suint256(1)], 
-            1,
-            sampleMsg
-        );
+        directCiphertext[0] = AesLib.AES256GCMEncrypt(keys[suint256(0)], 0, sampleMsg);
+        directCiphertext[1] = AesLib.AES256GCMEncrypt(keys[suint256(1)], 1, sampleMsg);
 
-        assertEq(
-            extractCT(encryptedData[0]), 
-            directCiphertext[0]
-        );
-        assertEq(
-            extractCT(encryptedData[1]), 
-            directCiphertext[1]
-        );
+        assertEq(extractCT(encryptedData[0]), directCiphertext[0]);
+        assertEq(extractCT(encryptedData[1]), directCiphertext[1]);
     }
 
     function testAddKey() public {
         suint256 key = AesLib.HKDFDeriveKey(abi.encodePacked("key2"));
         intelligence.addKey(key);
 
-        bytes memory encryptedData = intelligence.encrypt(
-            2,  
-            sampleMsg
-        );
-        bytes memory directCiphertext = AesLib.AES256GCMEncrypt(
-            key,
-            0,
-            sampleMsg
-        );
+        bytes memory encryptedData = intelligence.encrypt(2, sampleMsg);
+        bytes memory directCiphertext = AesLib.AES256GCMEncrypt(key, 0, sampleMsg);
 
         assertEq(intelligence.numKeys(), 3);
-        assertEq(
-            extractCT(encryptedData), 
-            directCiphertext
-        );
+        assertEq(extractCT(encryptedData), directCiphertext);
     }
 
     function testRemoveKey() public {
@@ -115,29 +72,13 @@ contract IntelligenceTest is Test {
         intelligence.removeKey(keys[suint256(1)]);
         assertEq(intelligence.numKeys(), 2);
 
-        bytes[] memory encryptedData = intelligence.encryptAll(
-            sampleMsg
-        );
+        bytes[] memory encryptedData = intelligence.encryptAll(sampleMsg);
         bytes[] memory directCiphertext = new bytes[](2);
-        directCiphertext[0] = AesLib.AES256GCMEncrypt(
-            keys[suint256(0)], 
-            0,
-            sampleMsg
-        );
-        directCiphertext[1] = AesLib.AES256GCMEncrypt(
-            key, 
-            1,
-            sampleMsg
-        );
+        directCiphertext[0] = AesLib.AES256GCMEncrypt(keys[suint256(0)], 0, sampleMsg);
+        directCiphertext[1] = AesLib.AES256GCMEncrypt(key, 1, sampleMsg);
 
-        assertEq(
-            extractCT(encryptedData[0]), 
-            directCiphertext[0]
-        );
-        assertEq(
-            extractCT(encryptedData[1]), 
-            directCiphertext[1]
-        );
+        assertEq(extractCT(encryptedData[0]), directCiphertext[0]);
+        assertEq(extractCT(encryptedData[1]), directCiphertext[1]);
     }
 
     function testRemoveUnknownKey() public {
@@ -146,18 +87,13 @@ contract IntelligenceTest is Test {
         intelligence.removeKey(key);
     }
 
-    function testAddRemove(
-        uint256[8][4] memory seeds,
-        bool[8][4] memory shouldDelete
-    ) public {
+    function testAddRemove(uint256[8][4] memory seeds, bool[8][4] memory shouldDelete) public {
         suint256[][] memory allKeys = new suint256[][](suint256(4));
         for (uint256 i = 0; i < 4; i++) {
             allKeys[suint256(i)] = new suint256[](suint256(8));
             for (uint256 j = 0; j < 8; j++) {
                 bytes memory seedBytes = abi.encodePacked(seeds[i][j]);
-                allKeys[suint256(i)][suint256(j)] = AesLib.HKDFDeriveKey(
-                    seedBytes
-                );
+                allKeys[suint256(i)][suint256(j)] = AesLib.HKDFDeriveKey(seedBytes);
             }
         }
 
@@ -180,22 +116,15 @@ contract IntelligenceTest is Test {
             }
         }
 
-        // Every ciphertext (aside from the ones generated by the first two 
+        // Every ciphertext (aside from the ones generated by the first two
         // added in setUp()) should be decryptable by one of the saved keys.
-        // 
         bytes[] memory encryptedData = intelligence.encryptAll(sampleMsg);
         for (uint256 i = 2; i < intelligence.numKeys(); i++) {
             bool canDecrypt = false;
             for (uint256 j = 0; j < savedKeyIdx; j++) {
-                bytes memory input = abi.encodePacked(
-                    savedKeys[suint256(j)],
-                    uint96(i),
-                    extractCT(encryptedData[i])
-                );
+                bytes memory input = abi.encodePacked(savedKeys[suint256(j)], uint96(i), extractCT(encryptedData[i]));
                 address decryptAddr = AesLib.AES_DEC_PRECOMPILE;
-                (bool callSuccess, ) = decryptAddr.staticcall{gas: 300000}(
-                    input
-                );
+                (bool callSuccess,) = decryptAddr.staticcall{gas: 300000}(input);
                 canDecrypt = canDecrypt || callSuccess;
             }
             assert(canDecrypt);

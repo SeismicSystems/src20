@@ -19,45 +19,25 @@ contract Intelligence is Owned {
         return uint256(keys.length);
     }
 
-    function encrypt(uint256 _keyIdx, bytes memory _plaintext) 
-        public 
-        returns (bytes memory) 
-    {
+    function encrypt(uint256 _keyIdx, bytes memory _plaintext) public returns (bytes memory) {
         if (_keyIdx >= uint256(keys.length)) {
             revert KeyNotFound();
         }
 
         bytes32 keyHash = keccak256(abi.encodePacked(keys[suint256(_keyIdx)]));
-        bytes memory ciphertext = AesLib.AES256GCMEncrypt(
-            keys[suint256(_keyIdx)],
-            nonce, 
-            _plaintext
-        );
-        bytes memory encryptedData = AesLib.packEncryptedData(
-            ciphertext, 
-            nonce, 
-            keyHash
-        );
-        
+        bytes memory ciphertext = AesLib.AES256GCMEncrypt(keys[suint256(_keyIdx)], nonce, _plaintext);
+        bytes memory encryptedData = AesLib.packEncryptedData(ciphertext, nonce, keyHash);
+
         nonce++;
         return encryptedData;
     }
 
-    function decrypt(suint256 key, bytes memory _encryptedData)
-        public
-        view
-        returns (bytes memory) 
-    {
-        (bytes memory ct, uint96 nce, ) = AesLib.parseEncryptedData(
-            _encryptedData
-        );
+    function decrypt(suint256 key, bytes memory _encryptedData) public view returns (bytes memory) {
+        (bytes memory ct, uint96 nce,) = AesLib.parseEncryptedData(_encryptedData);
         return AesLib.AES256GCMDecrypt(key, nce, ct);
     }
 
-    function encryptAll(bytes memory _plaintext) 
-        public
-        returns (bytes[] memory)
-    {
+    function encryptAll(bytes memory _plaintext) public returns (bytes[] memory) {
         bytes[] memory encryptedData = new bytes[](uint256(keys.length));
         for (uint256 i = 0; i < uint256(keys.length); i++) {
             encryptedData[i] = encrypt(i, _plaintext);
@@ -81,7 +61,7 @@ contract Intelligence is Owned {
     function findKeyIndex(suint256 _key) internal view returns (uint256) {
         for (uint256 i = 0; i < uint256(keys.length); i++) {
             if (keys[suint256(i)] == _key) {
-                return uint256(i);  
+                return uint256(i);
             }
         }
         return type(uint256).max;
