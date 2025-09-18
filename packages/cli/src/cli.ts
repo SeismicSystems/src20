@@ -1,3 +1,6 @@
+import { createDecipheriv } from 'crypto';
+
+import { keccak256 } from 'ethers';
 import { http, type AbiEvent, type Chain } from 'viem';
 import type { Account } from 'viem/accounts';
 import {
@@ -8,6 +11,7 @@ import {
 
 import { SRC20Abi } from './util/abi';
 import DeployOut from '../../contracts/out/deploy.json';
+import { AES256GCM_LABEL, KEY_HASH_LENGTH, NONCE_LENGTH, TAG_LENGTH } from './util/constants';
 
 export async function createInterface(chain: Chain, account: Account) {
   const client = await createShieldedWalletClient({
@@ -23,20 +27,55 @@ export async function createInterface(chain: Chain, account: Account) {
   return { client, contract };
 }
 
-export async function attachTransferListener(
-  client: ShieldedWalletClient
-) {
+export async function attachTransferListener(client: ShieldedWalletClient, aesKey: Buffer) {
   const transferEvent = SRC20Abi.find(
     (item: any) => item.type === 'event' && item.name === 'Transfer'
   ) as AbiEvent;
-  
+
   client.watchEvent({
     address: DeployOut.MockSRC20 as `0x${string}`,
     events: [transferEvent],
     onLogs: (logs: any[]) => {
       logs.forEach(async (log) => {
-        console.log(log);
-      })
-    }
-  })
+        logTransfer(aesKey, log);
+      });
+    },
+  });
+}
+
+export function decrypt(key: Buffer, nonce: Buffer, ciphertext: Buffer): string {
+  // AES precompile uses aes_gcm Rust library, which automatically appends tag
+  // to ciphertext
+  const ciphertextNoTag = ciphertext.slice(0, -TAG_LENGTH);
+  const tag = ciphertext.slice(-TAG_LENGTH);
+
+  const decipher = createDecipheriv(AES256GCM_LABEL, key, nonce);
+  decipher.setAuthTag(tag);
+
+  let decrypted = decipher.update(ciphertextNoTag, undefined, 'utf8');
+  decrypted += decipher.final('utf8');
+  return decrypted;
+}
+
+export function parseEncryptedData(encryptedData: Buffer): {
+  ciphertext: Buffer;
+  nonce: Buffer;
+  keyHash: Buffer;
+} {
+  const keyHash = encryptedData.slice(-KEY_HASH_LENGTH);
+  const nonce = encryptedData.slice(-KEY_HASH_LENGTH - NONCE_LENGTH, -KEY_HASH_LENGTH);
+  const ciphertext = encryptedData.slice(0, -KEY_HASH_LENGTH - NONCE_LENGTH);
+
+  return { ciphertext, nonce, keyHash };
+}
+
+function logTransfer(aesKey: Buffer, log: any) {
+  const { to, encryptedAmount } = log.args;
+  const encryptedAmountBuffer = Buffer.from(encryptedAmount.slice(2), 'hex');
+  
+  const localKeyHash = keccak256(aesKey);
+  const { ciphertext, nonce, keyHash } = parseEncryptedData(encryptedAmountBuffer);
+  const message = decrypt(aesKey, nonce, ciphertext);
+  const amount = BigInt("0x" + Buffer.from(message, 'utf8').toString('hex'));
+  console.log(amount);
 }
