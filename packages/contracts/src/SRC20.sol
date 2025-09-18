@@ -3,6 +3,8 @@ pragma solidity ^0.8.13;
 
 import {ERC20} from "solmate/tokens/ERC20.sol";
 
+import {Intelligence} from "./Intelligence.sol";
+
 /// @notice Modern ERC20 + EIP-2612 implementation with balance privacy.
 /// @author Modified from Solmate (https://github.com/transmissions11/solmate/blob/main/src/tokens/ERC20.sol)
 /// @author Modified from Uniswap (https://github.com/Uniswap/uniswap-v2-core/blob/master/contracts/UniswapV2ERC20.sol)
@@ -12,14 +14,7 @@ abstract contract SRC20 {
                                  EVENTS
     //////////////////////////////////////////////////////////////*/
 
-    event Transfer(address indexed from, address indexed to, uint256 amount);
-
-    // event Transfer(address indexed from, address indexed to, bytes[] shieldedAmount, bytes32 viewingKeyHash);
-
-    // - constructor to take initial viewing keys
-    // - function to add / remove viewing keys, owner only
-    // - static place to pull in intelligence viewing keys
-    // - for i emit Transfer
+    event Transfer(address indexed from, address indexed to, bytes encryptedAmount);
 
     /*//////////////////////////////////////////////////////////////
                             METADATA STORAGE
@@ -46,6 +41,7 @@ abstract contract SRC20 {
     //////////////////////////////////////////////////////////////*/
 
     ERC20 public immutable baseAsset;
+    Intelligence public immutable intelligence;
 
     /*//////////////////////////////////////////////////////////////
                             EIP-2612 STORAGE
@@ -61,8 +57,9 @@ abstract contract SRC20 {
                                CONSTRUCTOR
     //////////////////////////////////////////////////////////////*/
 
-    constructor(ERC20 _baseAsset, string memory _name, string memory _symbol, uint8 _decimals) {
+    constructor(ERC20 _baseAsset, Intelligence _intelligence, string memory _name, string memory _symbol, uint8 _decimals) {
         baseAsset = _baseAsset;
+        intelligence = _intelligence;
 
         name = _name;
         symbol = _symbol;
@@ -92,9 +89,8 @@ abstract contract SRC20 {
         unchecked {
             balanceOf[to] += amount;
         }
-
-        emit Transfer(msg.sender, to, uint256(amount));
-
+    
+        emitTransferEncrypted(msg.sender, to, amount);
         return true;
     }
 
@@ -113,9 +109,19 @@ abstract contract SRC20 {
             balanceOf[to] += amount;
         }
 
-        emit Transfer(from, to, uint256(amount));
-
+        emitTransferEncrypted(from, to, amount);
         return true;
+    }
+
+    /*//////////////////////////////////////////////////////////////
+                               SRC20 LOGIC
+    //////////////////////////////////////////////////////////////*/
+
+    function emitTransferEncrypted(address from, address to, suint256 amount) internal {
+        bytes[] memory encryptedData = intelligence.encrypt(abi.encodePacked(amount));
+        for (uint256 i = 0; i < encryptedData.length; i++) {
+            emit Transfer(from, to, encryptedData[i]);
+        }
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -207,7 +213,7 @@ abstract contract SRC20 {
 
         baseAsset.transferFrom(msg.sender, address(this), amount);
 
-        emit Transfer(address(0), msg.sender, amount);
+        emitTransferEncrypted(address(0), msg.sender, suint256(amount));
     }
 
     function burn(uint256 amount) public virtual {
@@ -222,6 +228,6 @@ abstract contract SRC20 {
 
         baseAsset.transfer(msg.sender, amount);
 
-        emit Transfer(msg.sender, address(0), amount);
+        emitTransferEncrypted(msg.sender, address(0), suint256(amount));
     }
 }

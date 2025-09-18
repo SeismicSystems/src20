@@ -1,6 +1,6 @@
 {
   "name": "cli",
-  "module": "src/intelligence.ts",
+  "module": "src/index.ts",
   "type": "module",
   "private": true,
   "devDependencies": {
@@ -10,9 +10,12 @@
     "typescript": "^5"
   },
   "scripts": {
-    "dev": "bun src/intelligence.ts"
+    "dev": "bun src/index.ts"
   },
   "dependencies": {
-    "ethers": "^6.15.0"
+    "dotenv": "^17.2.2",
+    "ethers": "^6.15.0",
+    "seismic-viem": "^1.0.46",
+    "viem": "^2.37.6"
   }
 }

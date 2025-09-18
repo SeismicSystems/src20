@@ -19,7 +19,7 @@ contract Intelligence is Owned {
         return uint256(keys.length);
     }
 
-    function encrypt(uint256 _keyIdx, bytes memory _plaintext) public returns (bytes memory) {
+    function encryptIdx(uint256 _keyIdx, bytes memory _plaintext) public returns (bytes memory) {
         if (_keyIdx >= uint256(keys.length)) {
             revert KeyNotFound();
         }
@@ -37,10 +37,10 @@ contract Intelligence is Owned {
         return AesLib.AES256GCMDecrypt(key, nce, ct);
     }
 
-    function encryptAll(bytes memory _plaintext) public returns (bytes[] memory) {
+    function encrypt(bytes memory _plaintext) external returns (bytes[] memory) {
         bytes[] memory encryptedData = new bytes[](uint256(keys.length));
         for (uint256 i = 0; i < uint256(keys.length); i++) {
-            encryptedData[i] = encrypt(i, _plaintext);
+            encryptedData[i] = encryptIdx(i, _plaintext);
         }
         return encryptedData;
     }

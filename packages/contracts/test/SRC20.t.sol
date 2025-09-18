@@ -7,10 +7,12 @@ import {StdUtils} from "forge-std/StdUtils.sol";
 import {DSTestPlus} from "./utils/DSTestPlus.sol";
 import {DSInvariantTest} from "./utils/DSInvariantTest.sol";
 
+import {Intelligence} from "../src/Intelligence.sol";
 import {MockERC20} from "./utils/mocks/MockERC20.sol";
 import {MockSRC20} from "./utils/mocks/MockSRC20.sol";
 
 contract MockSRC20Test is DSTestPlus {
+    Intelligence intelligence;
     MockERC20 underlying;
     MockSRC20 token;
 
@@ -24,8 +26,9 @@ contract MockSRC20Test is DSTestPlus {
     }
 
     function setUp() public {
+        intelligence = new Intelligence(address(this), new suint256[](suint256(0)));
         underlying = new MockERC20("Underlying", "UNDR", 18);
-        token = new MockSRC20(underlying, "Token", "TKN", 18);
+        token = new MockSRC20(underlying, intelligence, "Token", "TKN", 18);
 
         underlying.mint(address(this), 1e70);
         underlying.mint(address(0xBEEF), 1e76);
@@ -298,7 +301,7 @@ contract MockSRC20Test is DSTestPlus {
 
     function testMetadata(string calldata name, string calldata symbol, uint8 decimals) public {
         MockERC20 undr = new MockERC20("Underlying", "UNDR", 18);
-        MockSRC20 tkn = new MockSRC20(undr, name, symbol, decimals);
+        MockSRC20 tkn = new MockSRC20(undr, intelligence, name, symbol, decimals);
         assertEq(tkn.name(), name);
         assertEq(tkn.symbol(), symbol);
         assertEq(tkn.decimals(), decimals);
@@ -578,8 +581,9 @@ contract ERC20Invariants is DSTestPlus, DSInvariantTest {
     MockSRC20 token;
 
     function setUp() public {
+        Intelligence intelligence = new Intelligence(address(this), new suint256[](suint256(0)));
         MockERC20 underlying = new MockERC20("Underlying", "UNDR", 18);
-        token = new MockSRC20(underlying, "Token", "TKN", 18);
+        token = new MockSRC20(underlying, intelligence, "Token", "TKN", 18);
         balanceSum = new BalanceSum(token);
 
         addTargetContract(address(balanceSum));
