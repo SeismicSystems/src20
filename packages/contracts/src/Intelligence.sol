@@ -28,7 +28,7 @@ contract Intelligence is Owned {
         bytes memory ciphertext = AesLib.AES256GCMEncrypt(keys[suint256(_keyIdx)], nonce, _plaintext);
         bytes memory encryptedData = AesLib.packEncryptedData(ciphertext, nonce, keyHash);
 
-        nonce++;
+        // nonce++;
         return encryptedData;
     }
 

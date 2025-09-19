@@ -47,7 +47,7 @@ BROADCAST_OUT=./broadcast/Deploy.s.sol/$CHAIN_ID/run-latest.json
 
 sforge script script/Deploy.s.sol:Deploy \
     --rpc-url $RPC_URL \
-    # --broadcast
+    --broadcast
 
 declare -A contract_addresses
 parse_broadcast "$BROADCAST_OUT" contract_addresses
