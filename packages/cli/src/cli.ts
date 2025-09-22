@@ -28,22 +28,6 @@ export async function createInterface(chain: Chain, account: Account) {
   return { client, contract };
 }
 
-export async function attachTransferListener(client: ShieldedWalletClient, aesKey: Buffer) {
-  const transferEvent = SRC20Abi.find(
-    (item: any) => item.type === 'event' && item.name === 'Transfer'
-  ) as AbiEvent;
-
-  client.watchEvent({
-    address: DeployOut.MockSRC20 as `0x${string}`,
-    events: [transferEvent],
-    onLogs: (logs: any[]) => {
-      logs.forEach(async (log) => {
-        logTransfer(aesKey, log);
-      });
-    },
-  });
-}
-
 export function decrypt(key: Buffer, nonce: Buffer, ciphertext: Buffer): Buffer {
   const ciphertextNoTag = ciphertext.slice(0, -TAG_LENGTH);
   const tag = ciphertext.slice(-TAG_LENGTH);
@@ -68,19 +52,60 @@ export function parseEncryptedData(encryptedData: Buffer): {
   return { ciphertext, nonce, keyHash };
 }
 
-async function logTransfer(aesKey: Buffer, log: any) {
-  const { from, to, encryptedAmount } = log.args;
+export async function attachEventListener(client: ShieldedWalletClient, aesKey: Buffer) {
+  const transferEvent = SRC20Abi.find(
+    (item: any) => item.type === 'event' && item.name === 'Transfer'
+  ) as AbiEvent;
+  const approvalEvent = SRC20Abi.find(
+    (item: any) => item.type === 'event' && item.name === 'Approval'
+  ) as AbiEvent;
+
+  client.watchEvent({
+    address: DeployOut.MockSRC20 as `0x${string}`,
+    events: [transferEvent, approvalEvent],
+    onLogs: (logs: any[]) => {
+      logs.forEach(async (log) => {
+        handleEvent(aesKey, log);
+      });
+    },
+  });
+}
+
+async function handleEvent(aesKey: Buffer, log: any) {
+  const { args, eventName } = log;
+  const { encryptedAmount } = args;
+  
   const encryptedAmountBuffer = Buffer.from(encryptedAmount.slice(2), 'hex');
   const { ciphertext, nonce, keyHash } = parseEncryptedData(encryptedAmountBuffer);
 
   const localKeyHash = keccak256(aesKey);
   if (localKeyHash === `0x${keyHash.toString('hex')}`) {
-    const message = decrypt(aesKey, nonce, ciphertext);
-    const amount = BigInt(`0x${message.toString('hex')}`);
+    const amountBytes = decrypt(aesKey, nonce, ciphertext);
+    const amount = BigInt(`0x${amountBytes.toString('hex')}`);
 
-    console.log('Transfer(address from, address to, bytes encryptedAmount)\n');
-    console.log('    from:', from);
-    console.log('    to:', to);
-    console.log('    amount:', amount, "\n");
+    if (eventName === 'Transfer') {
+      logTransfer(log, amount);
+    }
+    if (eventName === 'Approval') {
+      logApproval(log, amount);
+    }
   }
+}
+
+function logTransfer(log: any, amount: bigint) {
+  const { from, to } = log.args;
+
+  console.log('Transfer(address from, address to, bytes encryptedAmount)\n');
+  console.log('    from:', from);
+  console.log('    to:', to);
+  console.log('    amount:', amount, '\n');
+}
+
+function logApproval(log: any, amount: bigint) {
+  const { owner, spender } = log.args;
+
+  console.log('Approval(address owner, address spender, bytes encryptedAmount)\n');
+  console.log('    owner:', owner);
+  console.log('    spender:', spender);
+  console.log('    amount:', amount, '\n');
 }

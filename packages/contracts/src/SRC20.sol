@@ -15,6 +15,8 @@ abstract contract SRC20 {
     //////////////////////////////////////////////////////////////*/
 
     event Transfer(address indexed from, address indexed to, bytes encryptedAmount);
+    
+    event Approval(address indexed owner, address indexed spender, bytes encryptedAmount);
 
     /*//////////////////////////////////////////////////////////////
                             METADATA STORAGE
@@ -76,7 +78,7 @@ abstract contract SRC20 {
     function approve(address spender, suint256 amount) public virtual returns (bool) {
         allowance[msg.sender][spender] = amount;
 
-        // emit Approval(msg.sender, spender, amount);
+        emitApprovalEncrypted(msg.sender, spender, amount);
 
         return true;
     }
@@ -124,6 +126,13 @@ abstract contract SRC20 {
         }
     }
 
+    function emitApprovalEncrypted(address owner, address spender, suint256 amount) internal {
+        bytes[] memory encryptedData = intelligence.encrypt(abi.encodePacked(amount));
+        for (uint256 i = 0; i < encryptedData.length; i++) {
+            emit Approval(owner, spender, encryptedData[i]);
+        }
+    }
+
     /*//////////////////////////////////////////////////////////////
                              EIP-2612 LOGIC
     //////////////////////////////////////////////////////////////*/
@@ -166,7 +175,7 @@ abstract contract SRC20 {
             allowance[recoveredAddress][spender] = value;
         }
 
-        // emit Approval(owner, spender, value);
+        emitApprovalEncrypted(owner, spender, value);
     }
 
     function DOMAIN_SEPARATOR() public view virtual returns (bytes32) {

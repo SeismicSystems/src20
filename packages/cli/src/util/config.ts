@@ -1,7 +1,7 @@
 import { config } from "dotenv";
 import { resolve } from "path";
 
-config({ path: resolve(__dirname, "../../../contracts/.env") });
+config({ path: resolve(__dirname, "../../../contracts/.env"), quiet: true });
 
 export function requireEnv(key: string): string {
     const value = process.env[key];
