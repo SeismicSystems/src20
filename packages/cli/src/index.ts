@@ -17,7 +17,10 @@ async function main() {
   const { client, contract } = await createInterface(chain, account);
   attachTransferListener(client, aesKeyBuffer);
 
-  // contract.write.transfer([client.account.address, 1e18]);
+  const selfAddr = client.account.address as `0x${string}`;
+  await waitForTx(contract.write.transfer([selfAddr, 1e18]), client);
+  await waitForTx(contract.write.transfer([selfAddr, 123]), client);
+  await waitForTx(contract.write.transfer([selfAddr, 8943784378943]), client);
 }
 
 main();

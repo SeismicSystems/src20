@@ -35,25 +35,8 @@ contract Deploy is Script {
         token.mint(1e27);
         vm.stopBroadcast();
 
-        // suint256 aesKey = suint256(4808126964507126855406015480764155071141914500595441171764208570041907376684);
-        // bytes memory encryptedAmount = hex"072a79329a14584fa48cb4a8f9d2e343bfc18e0a9964e81f2ca0a5da0e3f814fe8f65061a57f7dd8537902e643a64d0200000000000000000000003cf401dcfbfc5719ee4d26258f02f637d30fc1860ab52bc241c3495d2c7e11a790";
-        // bytes memory decryptedAmount = intelligence.decrypt(aesKey, encryptedAmount);
-        // (bytes memory ct, uint96 nce, bytes32 kh) = AesLib.parseEncryptedData(encryptedAmount);
-        // console.log("HERE");
-        // console.logBytes(ct);
-        // console.logUint(uint256(nce));
-        // console.logBytes32(kh);
-        // console.log(bytesToUint(decryptedAmount));
-
-        bytes[] memory encryptedData = intelligence.encrypt("1");
-        console.logBytes(encryptedData[0]);
-
-        bytes[] memory encryptedData2 = intelligence.encrypt("1");
-        console.logBytes(encryptedData2[0]);
-
-        bytes[] memory encryptedData3 = intelligence.encrypt("1");
-        console.logBytes(encryptedData3[0]);
-
-        console.log(address(intelligence));
+        bytes[] memory encryptedData = intelligence.encrypt(abi.encodePacked(uint256(123)));
+        bytes memory decryptedData = intelligence.decrypt(intelligenceAESKey, encryptedData[0]);
+        (bytes memory ct, uint96 nce,) = AesLib.parseEncryptedData(encryptedData[0]);
     }
 }

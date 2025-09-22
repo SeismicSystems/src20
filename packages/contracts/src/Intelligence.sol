@@ -19,6 +19,10 @@ contract Intelligence is Owned {
         return uint256(keys.length);
     }
 
+    function addOne(uint256 input) public returns (uint256) {
+        return input + nonce + 1;
+    }
+
     function encryptIdx(uint256 _keyIdx, bytes memory _plaintext) public returns (bytes memory) {
         if (_keyIdx >= uint256(keys.length)) {
             revert KeyNotFound();
@@ -28,7 +32,7 @@ contract Intelligence is Owned {
         bytes memory ciphertext = AesLib.AES256GCMEncrypt(keys[suint256(_keyIdx)], nonce, _plaintext);
         bytes memory encryptedData = AesLib.packEncryptedData(ciphertext, nonce, keyHash);
 
-        // nonce++;
+        nonce++;
         return encryptedData;
     }
 
