@@ -5,7 +5,7 @@ import {ERC20} from "solmate/tokens/ERC20.sol";
 
 import {Intelligence} from "./Intelligence.sol";
 
-/// @notice Modern ERC20 + EIP-2612 implementation with balance privacy.
+/// @notice Modern ERC20 + EIP-2612 implementation with confidential balances and transfers.
 /// @author Modified from Solmate (https://github.com/transmissions11/solmate/blob/main/src/tokens/ERC20.sol)
 /// @author Modified from Uniswap (https://github.com/Uniswap/uniswap-v2-core/blob/master/contracts/UniswapV2ERC20.sol)
 /// @dev Do not manually set balances without updating totalSupply, as the sum of all user balances must not exceed it.
@@ -14,9 +14,9 @@ abstract contract SRC20 {
                                  EVENTS
     //////////////////////////////////////////////////////////////*/
 
-    event Transfer(address indexed from, address indexed to, bytes encryptedAmount);
+    event Transfer(address indexed from, address indexed to, address indexed encryptKeyHash, bytes encryptedAmount);
     
-    event Approval(address indexed owner, address indexed spender, bytes encryptedAmount);
+    event Approval(address indexed owner, address indexed spender, address indexed encryptKeyHash, bytes encryptedAmount);
 
     /*//////////////////////////////////////////////////////////////
                             METADATA STORAGE
@@ -42,7 +42,6 @@ abstract contract SRC20 {
                               SRC20 STORAGE
     //////////////////////////////////////////////////////////////*/
 
-    ERC20 public immutable baseAsset;
     Intelligence public immutable intelligence;
 
     /*//////////////////////////////////////////////////////////////
@@ -59,8 +58,7 @@ abstract contract SRC20 {
                                CONSTRUCTOR
     //////////////////////////////////////////////////////////////*/
 
-    constructor(ERC20 _baseAsset, Intelligence _intelligence, string memory _name, string memory _symbol, uint8 _decimals) {
-        baseAsset = _baseAsset;
+    constructor(Intelligence _intelligence, string memory _name, string memory _symbol, uint8 _decimals) {
         intelligence = _intelligence;
 
         name = _name;

@@ -124,21 +124,20 @@ library AesLib {
         }
     }
 
-    function packEncryptedData(bytes memory _ciphertext, uint96 _nonce, bytes32 keyHash)
+    function packEncryptedData(bytes memory _ciphertext, uint96 _nonce)
         public
         pure
         returns (bytes memory)
     {
-        return abi.encodePacked(_ciphertext, _nonce, keyHash);
+        return abi.encodePacked(_ciphertext, _nonce);
     }
 
     function parseEncryptedData(bytes memory _encryptedData)
         public
         pure
-        returns (bytes memory ciphertext, uint96 nonce, bytes32 keyHash)
+        returns (bytes memory ciphertext, uint96 nonce)
     {
-        uint256 keyHashStart = _encryptedData.length - 32;
-        uint256 nonceStart = keyHashStart - 12;
+        uint256 nonceStart = _encryptedData.length - 12;
 
         ciphertext = new bytes(nonceStart);
         for (uint256 i = 0; i < nonceStart; i++) {
@@ -150,11 +149,5 @@ library AesLib {
             nonceBytes[i] = _encryptedData[nonceStart + i];
         }
         nonce = uint96(bytes12(nonceBytes));
-
-        bytes memory keyHashBytes = new bytes(32);
-        for (uint256 i = 0; i < 32; i++) {
-            keyHashBytes[i] = _encryptedData[keyHashStart + i];
-        }
-        keyHash = bytes32(keyHashBytes);
     }
 }
