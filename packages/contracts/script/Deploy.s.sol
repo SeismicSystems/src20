@@ -22,7 +22,7 @@ contract Deploy is Script {
 
         suint256[] memory keys = new suint256[](suint256(1));
         keys[suint256(0)] = suint256(intelligenceAESKey);
-        
+
         vm.startBroadcast(deployerPrivkey);
         Intelligence intelligence = new Intelligence(deployer, keys);
         MockERC20 underlying = new MockERC20("Underlying", "UNDR", 18);

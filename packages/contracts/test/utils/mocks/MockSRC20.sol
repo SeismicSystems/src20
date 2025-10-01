@@ -7,7 +7,11 @@ import {Intelligence} from "../../../src/Intelligence.sol";
 import {SRC20} from "../../../src/SRC20.sol";
 
 contract MockSRC20 is SRC20 {
-    constructor(ERC20 _baseAsset, Intelligence _intelligence, string memory _name, string memory _symbol, uint8 _decimals)
-        SRC20(_baseAsset, _intelligence, _name, _symbol, _decimals)
-    {}
+    constructor(
+        ERC20 _baseAsset,
+        Intelligence _intelligence,
+        string memory _name,
+        string memory _symbol,
+        uint8 _decimals
+    ) SRC20(_baseAsset, _intelligence, _name, _symbol, _decimals) {}
 }

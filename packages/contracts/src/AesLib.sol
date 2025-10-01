@@ -124,11 +124,7 @@ library AesLib {
         }
     }
 
-    function packEncryptedData(bytes memory _ciphertext, uint96 _nonce)
-        public
-        pure
-        returns (bytes memory)
-    {
+    function packEncryptedData(bytes memory _ciphertext, uint96 _nonce) public pure returns (bytes memory) {
         return abi.encodePacked(_ciphertext, _nonce);
     }
 

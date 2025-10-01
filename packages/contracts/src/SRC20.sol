@@ -3,7 +3,7 @@ pragma solidity ^0.8.13;
 
 import {ERC20} from "solmate/tokens/ERC20.sol";
 
-import {Intelligence} from "./Intelligence.sol";
+import {IIntelligence} from "./IIntelligence.sol";
 
 /// @notice Modern ERC20 + EIP-2612 implementation with confidential balances and transfers.
 /// @author Modified from Solmate (https://github.com/transmissions11/solmate/blob/main/src/tokens/ERC20.sol)
@@ -14,9 +14,11 @@ abstract contract SRC20 {
                                  EVENTS
     //////////////////////////////////////////////////////////////*/
 
-    event Transfer(address indexed from, address indexed to, address indexed encryptKeyHash, bytes encryptedAmount);
-    
-    event Approval(address indexed owner, address indexed spender, address indexed encryptKeyHash, bytes encryptedAmount);
+    event Transfer(address indexed from, address indexed to, bytes32 indexed encryptKeyHash, bytes encryptedAmount);
+
+    event Approval(
+        address indexed owner, address indexed spender, bytes32 indexed encryptKeyHash, bytes encryptedAmount
+    );
 
     /*//////////////////////////////////////////////////////////////
                             METADATA STORAGE
@@ -29,20 +31,16 @@ abstract contract SRC20 {
     uint8 public immutable decimals;
 
     /*//////////////////////////////////////////////////////////////
-                              ERC20 STORAGE
+                              SRC20 STORAGE
     //////////////////////////////////////////////////////////////*/
 
-    uint256 public totalSupply;
+    IIntelligence public immutable intelligence;
+
+    suint256 internal totalSupply;
 
     mapping(address => suint256) internal balanceOf;
 
     mapping(address => mapping(address => suint256)) internal allowance;
-
-    /*//////////////////////////////////////////////////////////////
-                              SRC20 STORAGE
-    //////////////////////////////////////////////////////////////*/
-
-    Intelligence public immutable intelligence;
 
     /*//////////////////////////////////////////////////////////////
                             EIP-2612 STORAGE
@@ -58,8 +56,8 @@ abstract contract SRC20 {
                                CONSTRUCTOR
     //////////////////////////////////////////////////////////////*/
 
-    constructor(Intelligence _intelligence, string memory _name, string memory _symbol, uint8 _decimals) {
-        intelligence = _intelligence;
+    constructor(address _intelligence, string memory _name, string memory _symbol, uint8 _decimals) {
+        intelligence = IIntelligence(_intelligence);
 
         name = _name;
         symbol = _symbol;
@@ -70,7 +68,7 @@ abstract contract SRC20 {
     }
 
     /*//////////////////////////////////////////////////////////////
-                               ERC20 LOGIC
+                               SRC20 LOGIC
     //////////////////////////////////////////////////////////////*/
 
     function approve(address spender, suint256 amount) public virtual returns (bool) {
@@ -89,7 +87,7 @@ abstract contract SRC20 {
         unchecked {
             balanceOf[to] += amount;
         }
-    
+
         emitTransferEncrypted(msg.sender, to, amount);
         return true;
     }
@@ -111,24 +109,6 @@ abstract contract SRC20 {
 
         emitTransferEncrypted(from, to, amount);
         return true;
-    }
-
-    /*//////////////////////////////////////////////////////////////
-                               SRC20 LOGIC
-    //////////////////////////////////////////////////////////////*/
-
-    function emitTransferEncrypted(address from, address to, suint256 amount) internal {
-        bytes[] memory encryptedData = intelligence.encrypt(abi.encodePacked(amount));
-        for (uint256 i = 0; i < encryptedData.length; i++) {
-            emit Transfer(from, to, encryptedData[i]);
-        }
-    }
-
-    function emitApprovalEncrypted(address owner, address spender, suint256 amount) internal {
-        bytes[] memory encryptedData = intelligence.encrypt(abi.encodePacked(amount));
-        for (uint256 i = 0; i < encryptedData.length; i++) {
-            emit Approval(owner, spender, encryptedData[i]);
-        }
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -193,7 +173,27 @@ abstract contract SRC20 {
     }
 
     /*//////////////////////////////////////////////////////////////
-                         PUBLIC VIEWING LOGIC
+                            EMIT EVENTS
+    //////////////////////////////////////////////////////////////*/
+
+    function emitTransferEncrypted(address from, address to, suint256 amount) internal {
+        (bytes32[] memory encryptKeyHashes, bytes[] memory encryptedData) =
+            intelligence.encrypt(abi.encodePacked(amount));
+        for (uint256 i = 0; i < encryptedData.length; i++) {
+            emit Transfer(from, to, encryptKeyHashes[i], encryptedData[i]);
+        }
+    }
+
+    function emitApprovalEncrypted(address owner, address spender, suint256 amount) internal {
+        (bytes32[] memory encryptKeyHashes, bytes[] memory encryptedData) =
+            intelligence.encrypt(abi.encodePacked(amount));
+        for (uint256 i = 0; i < encryptedData.length; i++) {
+            emit Approval(owner, spender, encryptKeyHashes[i], encryptedData[i]);
+        }
+    }
+
+    /*//////////////////////////////////////////////////////////////
+                           READ FUNCTIONS
     //////////////////////////////////////////////////////////////*/
 
     function balance() public view virtual returns (uint256) {
@@ -204,28 +204,28 @@ abstract contract SRC20 {
         return uint256(allowance[msg.sender][spender]);
     }
 
+    function _totalSupply() internal virtual returns (uint256) {
+        return uint256(totalSupply);
+    }
+
     /*//////////////////////////////////////////////////////////////
-                        PUBLIC MINT/BURN LOGIC
+                          MINT/BURN LOGIC
     //////////////////////////////////////////////////////////////*/
 
-    function mint(uint256 amount) public virtual {
+    function _mint(address to, suint256 amount) internal virtual {
         totalSupply += amount;
 
         // Cannot overflow because the sum of all user
         // balances can't exceed the max uint256 value.
         unchecked {
-            // Amount of newly minted tokens sent to an address is public
-            balanceOf[msg.sender] += suint256(amount);
+            balanceOf[to] += amount;
         }
 
-        baseAsset.transferFrom(msg.sender, address(this), amount);
-
-        emitTransferEncrypted(address(0), msg.sender, suint256(amount));
+        emitTransferEncrypted(address(0), to, amount);
     }
 
-    function burn(uint256 amount) public virtual {
-        // Amount of burned tokens from an address is public
-        balanceOf[msg.sender] -= suint256(amount);
+    function _burn(address from, suint256 amount) internal virtual {
+        balanceOf[from] -= amount;
 
         // Cannot underflow because a user's balance
         // will never be larger than the total supply.
@@ -233,8 +233,6 @@ abstract contract SRC20 {
             totalSupply -= amount;
         }
 
-        baseAsset.transfer(msg.sender, amount);
-
-        emitTransferEncrypted(msg.sender, address(0), suint256(amount));
+        emitTransferEncrypted(from, address(0), amount);
     }
 }

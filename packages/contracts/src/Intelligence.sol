@@ -4,8 +4,9 @@ pragma solidity ^0.8.13;
 import {Owned} from "solmate/auth/Owned.sol";
 
 import {AesLib} from "./AesLib.sol";
+import {IIntelligence} from "./IIntelligence.sol";
 
-contract Intelligence is Owned {
+contract Intelligence is Owned, IIntelligence {
     error KeyNotFound();
 
     suint256[] private keys;
