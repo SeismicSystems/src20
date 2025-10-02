@@ -8,7 +8,6 @@ import {DSTestPlus} from "./utils/DSTestPlus.sol";
 import {DSInvariantTest} from "./utils/DSInvariantTest.sol";
 
 import {Intelligence} from "../src/Intelligence.sol";
-import {MockERC20} from "./utils/mocks/MockERC20.sol";
 import {MockSRC20} from "./utils/mocks/MockSRC20.sol";
 
 contract MockSRC20Test is DSTestPlus {

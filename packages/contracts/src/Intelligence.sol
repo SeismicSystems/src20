@@ -10,7 +10,7 @@ contract Intelligence is Owned, IIntelligence {
     error KeyNotFound();
 
     suint256[] private keys;
-    bytes32[] private keyHashes;
+    bytes32[] public keyHashes;
     uint96 public nonce;
 
     constructor(address _owner, suint256[] memory _keys) Owned(_owner) {

@@ -8,7 +8,6 @@ import {AesLib} from "../src/AesLib.sol";
 import {Intelligence} from "../src/Intelligence.sol";
 import {SRC20} from "../src/SRC20.sol";
 
-import {MockERC20} from "../test/utils/mocks/MockERC20.sol";
 import {MockSRC20} from "../test/utils/mocks/MockSRC20.sol";
 
 contract Deploy is Script {
@@ -21,22 +20,12 @@ contract Deploy is Script {
         address alice = vm.addr(alicePrivkey);
 
         suint256[] memory keys = new suint256[](suint256(1));
-        keys[suint256(0)] = suint256(intelligenceAESKey);
+        keys[0] = suint256(intelligenceAESKey);
 
         vm.startBroadcast(deployerPrivkey);
         Intelligence intelligence = new Intelligence(deployer, keys);
-        MockERC20 underlying = new MockERC20("Underlying", "UNDR", 18);
-        SRC20 token = new MockSRC20(underlying, intelligence, "Token", "TKN", 18);
-        underlying.mint(alice, 2e27);
+        MockSRC20 token = new MockSRC20(address(intelligence), "Token", "TKN", 18);
+        token.mint(alice, suint256(2e27));
         vm.stopBroadcast();
-
-        vm.startBroadcast(alicePrivkey);
-        underlying.approve(address(token), 1e27);
-        token.mint(1e27);
-        vm.stopBroadcast();
-
-        bytes[] memory encryptedData = intelligence.encrypt(abi.encodePacked(uint256(123)));
-        bytes memory decryptedData = intelligence.decrypt(intelligenceAESKey, encryptedData[0]);
-        (bytes memory ct, uint96 nce,) = AesLib.parseEncryptedData(encryptedData[0]);
     }
 }
