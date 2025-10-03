@@ -11,6 +11,10 @@ contract MockSRC20 is SRC20 {
         uint8 _decimals
     ) SRC20(_intelligence, _name, _symbol, _decimals) {}
 
+    function totalSupply() public view virtual returns (uint256) {
+        return _totalSupply();
+    }
+
     function mint(address to, suint256 value) public virtual {
         _mint(to, value);
     }

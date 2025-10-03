@@ -36,11 +36,11 @@ abstract contract SRC20 {
 
     IIntelligence public immutable intelligence;
 
-    suint256 internal totalSupply;
+    suint256 internal supply;
 
-    mapping(address => suint256) internal balanceOf;
+    mapping(address => suint256) internal balances;
 
-    mapping(address => mapping(address => suint256)) internal allowance;
+    mapping(address => mapping(address => suint256)) internal allowances;
 
     /*//////////////////////////////////////////////////////////////
                             EIP-2612 STORAGE
@@ -72,7 +72,7 @@ abstract contract SRC20 {
     //////////////////////////////////////////////////////////////*/
 
     function approve(address spender, suint256 amount) public virtual returns (bool) {
-        allowance[msg.sender][spender] = amount;
+        allowances[msg.sender][spender] = amount;
 
         emitApprovalEncrypted(msg.sender, spender, amount);
 
@@ -80,12 +80,12 @@ abstract contract SRC20 {
     }
 
     function transfer(address to, suint256 amount) public virtual returns (bool) {
-        balanceOf[msg.sender] -= amount;
+        balances[msg.sender] -= amount;
 
         // Cannot overflow because the sum of all user
         // balances can't exceed the max uint256 value.
         unchecked {
-            balanceOf[to] += amount;
+            balances[to] += amount;
         }
 
         emitTransferEncrypted(msg.sender, to, amount);
@@ -93,18 +93,18 @@ abstract contract SRC20 {
     }
 
     function transferFrom(address from, address to, suint256 amount) public virtual returns (bool) {
-        suint256 allowed = allowance[from][msg.sender]; // Saves gas for limited approvals.
+        suint256 allowed = allowances[from][msg.sender]; // Saves gas for limited approvals.
 
         if (allowed != type(suint256).max) {
-            allowance[from][msg.sender] = allowed - amount;
+            allowances[from][msg.sender] = allowed - amount;
         }
 
-        balanceOf[from] -= amount;
+        balances[from] -= amount;
 
         // Cannot overflow because the sum of all user
         // balances can't exceed the max uint256 value.
         unchecked {
-            balanceOf[to] += amount;
+            balances[to] += amount;
         }
 
         emitTransferEncrypted(from, to, amount);
@@ -150,7 +150,7 @@ abstract contract SRC20 {
 
             require(recoveredAddress != address(0) && recoveredAddress == owner, "INVALID_SIGNER");
 
-            allowance[recoveredAddress][spender] = value;
+            allowances[recoveredAddress][spender] = value;
         }
 
         emitApprovalEncrypted(owner, spender, value);
@@ -197,15 +197,15 @@ abstract contract SRC20 {
     //////////////////////////////////////////////////////////////*/
 
     function balance() public view virtual returns (uint256) {
-        return uint256(balanceOf[msg.sender]);
+        return uint256(balances[msg.sender]);
     }
 
-    function allowanceOf(address spender) public view virtual returns (uint256) {
-        return uint256(allowance[msg.sender][spender]);
+    function allowance(address spender) public view virtual returns (uint256) {
+        return uint256(allowances[msg.sender][spender]);
     }
 
-    function _totalSupply() internal virtual returns (uint256) {
-        return uint256(totalSupply);
+    function _totalSupply() internal view virtual returns (uint256) {
+        return uint256(supply);
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -213,24 +213,24 @@ abstract contract SRC20 {
     //////////////////////////////////////////////////////////////*/
 
     function _mint(address to, suint256 amount) internal virtual {
-        totalSupply += amount;
+        supply += amount;
 
         // Cannot overflow because the sum of all user
         // balances can't exceed the max uint256 value.
         unchecked {
-            balanceOf[to] += amount;
+            balances[to] += amount;
         }
 
         emitTransferEncrypted(address(0), to, amount);
     }
 
     function _burn(address from, suint256 amount) internal virtual {
-        balanceOf[from] -= amount;
+        balances[from] -= amount;
 
         // Cannot underflow because a user's balance
         // will never be larger than the total supply.
         unchecked {
-            totalSupply -= amount;
+            supply -= amount;
         }
 
         emitTransferEncrypted(from, address(0), amount);
