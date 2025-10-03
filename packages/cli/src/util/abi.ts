@@ -10,7 +10,7 @@ export const SRC20Abi = [
   },
   {
     type: 'function',
-    name: 'allowanceOf',
+    name: 'allowance',
     inputs: [{ name: 'spender', type: 'address', internalType: 'address' }],
     outputs: [{ name: '', type: 'uint256', internalType: 'uint256' }],
     stateMutability: 'view',
@@ -34,20 +34,6 @@ export const SRC20Abi = [
   },
   {
     type: 'function',
-    name: 'baseAsset',
-    inputs: [],
-    outputs: [{ name: '', type: 'address', internalType: 'contract ERC20' }],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    name: 'burn',
-    inputs: [{ name: 'amount', type: 'uint256', internalType: 'uint256' }],
-    outputs: [],
-    stateMutability: 'nonpayable',
-  },
-  {
-    type: 'function',
     name: 'decimals',
     inputs: [],
     outputs: [{ name: '', type: 'uint8', internalType: 'uint8' }],
@@ -57,15 +43,8 @@ export const SRC20Abi = [
     type: 'function',
     name: 'intelligence',
     inputs: [],
-    outputs: [{ name: '', type: 'address', internalType: 'contract Intelligence' }],
+    outputs: [{ name: '', type: 'address', internalType: 'contract IIntelligence' }],
     stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    name: 'mint',
-    inputs: [{ name: 'amount', type: 'uint256', internalType: 'uint256' }],
-    outputs: [],
-    stateMutability: 'nonpayable',
   },
   {
     type: 'function',
@@ -105,13 +84,6 @@ export const SRC20Abi = [
   },
   {
     type: 'function',
-    name: 'totalSupply',
-    inputs: [],
-    outputs: [{ name: '', type: 'uint256', internalType: 'uint256' }],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
     name: 'transfer',
     inputs: [
       { name: 'to', type: 'address', internalType: 'address' },
@@ -137,6 +109,7 @@ export const SRC20Abi = [
     inputs: [
       { name: 'owner', type: 'address', indexed: true, internalType: 'address' },
       { name: 'spender', type: 'address', indexed: true, internalType: 'address' },
+      { name: 'encryptKeyHash', type: 'bytes32', indexed: true, internalType: 'bytes32' },
       { name: 'encryptedAmount', type: 'bytes', indexed: false, internalType: 'bytes' },
     ],
     anonymous: false,
@@ -147,6 +120,7 @@ export const SRC20Abi = [
     inputs: [
       { name: 'from', type: 'address', indexed: true, internalType: 'address' },
       { name: 'to', type: 'address', indexed: true, internalType: 'address' },
+      { name: 'encryptKeyHash', type: 'bytes32', indexed: true, internalType: 'bytes32' },
       { name: 'encryptedAmount', type: 'bytes', indexed: false, internalType: 'bytes' },
     ],
     anonymous: false,

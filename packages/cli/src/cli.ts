@@ -43,13 +43,11 @@ export function decrypt(key: Buffer, nonce: Buffer, ciphertext: Buffer): Buffer 
 export function parseEncryptedData(encryptedData: Buffer): {
   ciphertext: Buffer;
   nonce: Buffer;
-  keyHash: Buffer;
 } {
-  const keyHash = encryptedData.slice(-KEY_HASH_LENGTH);
-  const nonce = encryptedData.slice(-KEY_HASH_LENGTH - NONCE_LENGTH, -KEY_HASH_LENGTH);
-  const ciphertext = encryptedData.slice(0, -KEY_HASH_LENGTH - NONCE_LENGTH);
+  const nonce = encryptedData.slice(- NONCE_LENGTH);
+  const ciphertext = encryptedData.slice(0, - NONCE_LENGTH);
 
-  return { ciphertext, nonce, keyHash };
+  return { ciphertext, nonce };
 }
 
 export async function attachEventListener(client: ShieldedWalletClient, aesKey: Buffer) {
@@ -60,9 +58,13 @@ export async function attachEventListener(client: ShieldedWalletClient, aesKey: 
     (item: any) => item.type === 'event' && item.name === 'Approval'
   ) as AbiEvent;
 
+  const keyHash = keccak256(aesKey) as `0x${string}`;
   client.watchEvent({
     address: DeployOut.MockSRC20 as `0x${string}`,
-    events: [transferEvent, approvalEvent],
+    event: transferEvent,
+    args: {
+      encryptKeyHash: keyHash,
+    },
     onLogs: (logs: any[]) => {
       logs.forEach(async (log) => {
         handleEvent(aesKey, log);
@@ -76,7 +78,7 @@ async function handleEvent(aesKey: Buffer, log: any) {
   const { encryptedAmount } = args;
   
   const encryptedAmountBuffer = Buffer.from(encryptedAmount.slice(2), 'hex');
-  const { ciphertext, nonce, keyHash } = parseEncryptedData(encryptedAmountBuffer);
+  const { ciphertext, nonce } = parseEncryptedData(encryptedAmountBuffer);
 
   const localKeyHash = keccak256(aesKey);
   if (localKeyHash === `0x${keyHash.toString('hex')}`) {

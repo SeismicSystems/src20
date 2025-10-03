@@ -234,11 +234,7 @@ contract SRC20Test is DSTestPlus {
         token.permit(owner, address(0xCAFE), suint256(1e18), block.timestamp, v, r, s);
     }
 
-    function testMetadata(
-        string calldata name,
-        string calldata symbol,
-        uint8 decimals
-    ) public {
+    function testMetadata(string calldata name, string calldata symbol, uint8 decimals) public {
         MockSRC20 tkn = new MockSRC20(address(intelligence), name, symbol, decimals);
         assertEq(tkn.name(), name);
         assertEq(tkn.symbol(), symbol);
@@ -253,11 +249,7 @@ contract SRC20Test is DSTestPlus {
         assertEq(token.balance(), amount);
     }
 
-    function testBurn(
-        address from,
-        uint256 mintAmount,
-        uint256 burnAmount
-    ) public {
+    function testBurn(address from, uint256 mintAmount, uint256 burnAmount) public {
         burnAmount = bound(burnAmount, 0, mintAmount);
 
         token.mint(from, suint256(mintAmount));
@@ -289,11 +281,7 @@ contract SRC20Test is DSTestPlus {
         }
     }
 
-    function testTransferFrom(
-        address to,
-        uint256 approval,
-        uint256 amount
-    ) public {
+    function testTransferFrom(address to, uint256 approval, uint256 amount) public {
         amount = bound(amount, 0, approval);
 
         address from = address(0xABCD);
@@ -321,12 +309,7 @@ contract SRC20Test is DSTestPlus {
         }
     }
 
-    function testPermit(
-        uint248 privKey,
-        address to,
-        uint256 amount,
-        uint256 deadline
-    ) public {
+    function testPermit(uint248 privKey, address to, uint256 amount, uint256 deadline) public {
         uint256 privateKey = privKey;
         if (deadline < block.timestamp) deadline = block.timestamp;
         if (privateKey == 0) privateKey = 1;
@@ -351,11 +334,7 @@ contract SRC20Test is DSTestPlus {
         assertEq(token.nonces(owner), 1);
     }
 
-    function test_RevertIfBurnInsufficientBalance(
-        address to,
-        uint256 mintAmount,
-        uint256 burnAmount
-    ) public {
+    function test_RevertIfBurnInsufficientBalance(address to, uint256 mintAmount, uint256 burnAmount) public {
         mintAmount = bound(mintAmount, 0, type(uint256).max - 1);
         burnAmount = bound(burnAmount, mintAmount + 1, type(uint256).max);
 
@@ -364,11 +343,7 @@ contract SRC20Test is DSTestPlus {
         token.burn(to, suint256(burnAmount));
     }
 
-    function test_RevertIfTransferInsufficientBalance(
-        address to,
-        uint256 mintAmount,
-        uint256 sendAmount
-    ) public {
+    function test_RevertIfTransferInsufficientBalance(address to, uint256 mintAmount, uint256 sendAmount) public {
         mintAmount = bound(mintAmount, 0, type(uint256).max - 1);
         sendAmount = bound(sendAmount, mintAmount + 1, type(uint256).max);
 
@@ -377,11 +352,7 @@ contract SRC20Test is DSTestPlus {
         token.transfer(to, suint256(sendAmount));
     }
 
-    function test_RevertIfTransferFromInsufficientAllowance(
-        address to,
-        uint256 approval,
-        uint256 amount
-    ) public {
+    function test_RevertIfTransferFromInsufficientAllowance(address to, uint256 approval, uint256 amount) public {
         approval = bound(approval, 0, type(uint256).max - 1);
         amount = bound(amount, approval + 1, type(uint256).max);
 
@@ -396,11 +367,7 @@ contract SRC20Test is DSTestPlus {
         token.transferFrom(from, to, suint256(amount));
     }
 
-    function test_RevertIfTransferFromInsufficientBalance(
-        address to,
-        uint256 mintAmount,
-        uint256 sendAmount
-    ) public {
+    function test_RevertIfTransferFromInsufficientBalance(address to, uint256 mintAmount, uint256 sendAmount) public {
         mintAmount = bound(mintAmount, 0, type(uint256).max - 1);
         sendAmount = bound(sendAmount, mintAmount + 1, type(uint256).max);
 
@@ -443,12 +410,7 @@ contract SRC20Test is DSTestPlus {
         token.permit(owner, to, suint256(amount), deadline, v, r, s);
     }
 
-    function test_RevertIfPermitBadDeadline(
-        uint256 privateKey,
-        address to,
-        uint256 amount,
-        uint256 deadline
-    ) public {
+    function test_RevertIfPermitBadDeadline(uint256 privateKey, address to, uint256 amount, uint256 deadline) public {
         privateKey = boundPrivateKey(privateKey);
         deadline = bound(deadline, block.timestamp, type(uint256).max - 1);
 
@@ -469,12 +431,7 @@ contract SRC20Test is DSTestPlus {
         token.permit(owner, to, suint256(amount), deadline + 1, v, r, s);
     }
 
-    function test_RevertIfPermitPastDeadline(
-        uint256 privateKey,
-        address to,
-        uint256 amount,
-        uint256 deadline
-    ) public {
+    function test_RevertIfPermitPastDeadline(uint256 privateKey, address to, uint256 amount, uint256 deadline) public {
         deadline = bound(deadline, 0, block.timestamp - 1);
         privateKey = boundPrivateKey(privateKey);
 
@@ -495,12 +452,7 @@ contract SRC20Test is DSTestPlus {
         token.permit(owner, to, suint256(amount), deadline, v, r, s);
     }
 
-    function test_RevertIfPermitReplay(
-        uint256 privateKey,
-        address to,
-        uint256 amount,
-        uint256 deadline
-    ) public {
+    function test_RevertIfPermitReplay(uint256 privateKey, address to, uint256 amount, uint256 deadline) public {
         privateKey = boundPrivateKey(privateKey);
         if (deadline < block.timestamp) deadline = block.timestamp;
 
@@ -563,11 +515,7 @@ contract BalanceSum {
         token.approve(to, suint256(amount));
     }
 
-    function transferFrom(
-        address from,
-        address to,
-        uint256 amount
-    ) public {
+    function transferFrom(address from, address to, uint256 amount) public {
         token.transferFrom(from, to, suint256(amount));
     }
 
