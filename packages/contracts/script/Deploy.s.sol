@@ -12,6 +12,7 @@ import {MockSRC20} from "../test/utils/mocks/MockSRC20.sol";
 
 contract Deploy is Script {
     function run() public {
+        uint256 miniFaucetPrivkey = vm.envUint("MINI_FAUCET_PRIVATE_KEY");
         uint256 deployerPrivkey = vm.envUint("DEPLOYER_PRIVATE_KEY");
         uint256 alicePrivkey = vm.envUint("ALICE_PRIVATE_KEY");
         suint256 intelligenceAESKey = suint256(vm.envUint("INTELLIGENCE_AES_KEY"));
@@ -22,8 +23,13 @@ contract Deploy is Script {
         suint256[] memory keys = new suint256[](suint256(1));
         keys[0] = suint256(intelligenceAESKey);
 
+        vm.startBroadcast(miniFaucetPrivkey);
+        payable(deployer).transfer(1 ether);
+        payable(alice).transfer(1 ether);
+        vm.stopBroadcast();
+
         vm.startBroadcast(deployerPrivkey);
-        Intelligence intelligence = new Intelligence(deployer, keys);
+        Intelligence intelligence = new Intelligence();
         MockSRC20 token = new MockSRC20(address(intelligence), "Token", "TKN", 18);
         token.mint(alice, suint256(2e27));
         vm.stopBroadcast();

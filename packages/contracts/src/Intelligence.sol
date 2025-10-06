@@ -1,22 +1,18 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
-import {Owned} from "solmate/auth/Owned.sol";
-
 import {AesLib} from "./AesLib.sol";
 import {IIntelligence} from "./IIntelligence.sol";
 
-contract Intelligence is Owned, IIntelligence {
-    error KeyNotFound();
+contract Intelligence is IIntelligence {
+    address public immutable INITIAL_OWNER = address(0x6346d64A3f31774283b72926B75Ffda9662266ce);
+    address public owner;
 
     suint256[] private keys;
     bytes32[] public keyHashes;
     uint96 public nonce;
 
-    constructor(address _owner, suint256[] memory _keys) Owned(_owner) {
-        keys = _keys;
-        keyHashes = hashKeys(_keys);
-    }
+    constructor() {}
 
     function numKeys() public view returns (uint256) {
         return uint256(keys.length);
@@ -24,7 +20,7 @@ contract Intelligence is Owned, IIntelligence {
 
     function encryptIdx(uint256 _keyIdx, bytes memory _plaintext) public returns (bytes memory) {
         if (_keyIdx >= uint256(keys.length)) {
-            revert KeyNotFound();
+            revert("KEY_NOT_FOUND");
         }
 
         suint256 key = keys[_keyIdx];
@@ -56,7 +52,7 @@ contract Intelligence is Owned, IIntelligence {
     function removeKey(suint256 _key) external onlyOwner {
         uint256 idx = findKeyIndex(_key);
         if (idx == type(uint256).max) {
-            revert KeyNotFound();
+            revert("KEY_NOT_FOUND");
         }
 
         keys[idx] = keys[uint256(keys.length) - 1];
@@ -70,14 +66,6 @@ contract Intelligence is Owned, IIntelligence {
         return keccak256(abi.encodePacked(_key));
     }
 
-    function hashKeys(suint256[] memory _keys) internal pure returns (bytes32[] memory) {
-        bytes32[] memory hashes = new bytes32[](uint256(_keys.length));
-        for (uint256 i = 0; i < uint256(_keys.length); i++) {
-            hashes[i] = hashKey(_keys[i]);
-        }
-        return hashes;
-    }
-
     function findKeyIndex(suint256 _key) internal view returns (uint256) {
         for (uint256 i = 0; i < uint256(keys.length); i++) {
             if (keys[i] == _key) {
@@ -85,5 +73,19 @@ contract Intelligence is Owned, IIntelligence {
             }
         }
         return type(uint256).max;
+    }
+
+    function transferOwnership(address newOwner) public virtual onlyOwner {
+        owner = newOwner;
+
+        emit OwnershipTransferred(msg.sender, newOwner);
+    }
+
+    modifier onlyOwner() virtual {
+        if (owner == address(0)) {
+            owner = INITIAL_OWNER;
+        }
+        require(msg.sender == owner, "UNAUTHORIZED");
+        _;
     }
 }

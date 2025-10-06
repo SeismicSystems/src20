@@ -19,7 +19,11 @@ contract IntelligenceTest is Test {
         keys[0] = AesLib.HKDFDeriveKey(abi.encodePacked("key0"));
         keys[1] = AesLib.HKDFDeriveKey(abi.encodePacked("key1"));
 
-        intelligence = new Intelligence(address(this), keys);
+        intelligence = new Intelligence();
+        vm.startPrank(intelligence.INITIAL_OWNER());
+        intelligence.addKey(keys[0]);
+        intelligence.addKey(keys[1]);
+        vm.stopPrank();
     }
 
     function extractCT(bytes memory _encryptedData) internal pure returns (bytes memory ct) {
@@ -61,6 +65,7 @@ contract IntelligenceTest is Test {
 
     function testAddKey() public {
         suint256 key = AesLib.HKDFDeriveKey(abi.encodePacked("key2"));
+        vm.prank(intelligence.owner());
         intelligence.addKey(key);
 
         bytes memory encryptedData = intelligence.encryptIdx(2, sampleMsg);
@@ -75,8 +80,10 @@ contract IntelligenceTest is Test {
 
     function testRemoveKey() public {
         suint256 key = AesLib.HKDFDeriveKey(abi.encodePacked("key2"));
+        vm.prank(intelligence.owner());
         intelligence.addKey(key);
 
+        vm.prank(intelligence.owner());
         intelligence.removeKey(keys[1]);
         assertEq(intelligence.numKeys(), 2);
 
@@ -97,7 +104,8 @@ contract IntelligenceTest is Test {
 
     function testRemoveUnknownKey() public {
         suint256 key = AesLib.HKDFDeriveKey(abi.encodePacked("key5"));
-        vm.expectRevert(Intelligence.KeyNotFound.selector);
+        vm.prank(intelligence.owner());
+        vm.expectRevert("KEY_NOT_FOUND");
         intelligence.removeKey(key);
     }
 
@@ -118,6 +126,7 @@ contract IntelligenceTest is Test {
         for (uint256 i = 0; i < 4; i++) {
             for (uint256 j = 0; j < 8; j++) {
                 suint256 key = allKeys[i][j];
+                vm.prank(intelligence.owner());
                 intelligence.addKey(key);
                 if (!shouldDelete[i][j]) {
                     savedKeys[savedKeyIdx++] = key;
@@ -125,6 +134,7 @@ contract IntelligenceTest is Test {
             }
             for (uint256 j = 0; j < 8; j++) {
                 if (shouldDelete[i][j]) {
+                    vm.prank(intelligence.owner());
                     intelligence.removeKey(allKeys[i][j]);
                 }
             }

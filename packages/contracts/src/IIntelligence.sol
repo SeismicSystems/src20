@@ -2,6 +2,8 @@
 pragma solidity ^0.8.13;
 
 interface IIntelligence {
+    event OwnershipTransferred(address indexed user, address indexed newOwner);
+    
     function numKeys() external view returns (uint256);
 
     function encryptIdx(uint256 _keyIdx, bytes memory _plaintext) external returns (bytes memory);

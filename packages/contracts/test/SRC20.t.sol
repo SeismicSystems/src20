@@ -17,7 +17,7 @@ contract SRC20Test is DSTestPlus {
     uint256 constant SECP256K1_ORDER = 115792089237316195423570985008687907852837564279074904382605163141518161494337;
 
     function setUp() public {
-        intelligence = new Intelligence(address(this), new suint256[](suint256(0)));
+        intelligence = new Intelligence();
         token = new MockSRC20(address(intelligence), "Token", "TKN", 18);
     }
 
@@ -481,7 +481,7 @@ contract ERC20Invariants is DSTestPlus, DSInvariantTest {
     MockSRC20 token;
 
     function setUp() public {
-        intelligence = new Intelligence(address(this), new suint256[](suint256(0)));
+        intelligence = new Intelligence();
         token = new MockSRC20(address(intelligence), "Token", "TKN", 18);
         balanceSum = new BalanceSum(token);
 
