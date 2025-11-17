@@ -5,7 +5,8 @@ import {AesLib} from "./AesLib.sol";
 import {IIntelligence} from "./IIntelligence.sol";
 
 contract Intelligence is IIntelligence {
-    address public immutable INITIAL_OWNER = address(0x6346d64A3f31774283b72926B75Ffda9662266ce);
+    address public immutable INITIAL_OWNER =
+        address(0x6346d64A3f31774283b72926B75Ffda9662266ce);
     address public owner;
 
     suint256[] private keys;
@@ -18,25 +19,42 @@ contract Intelligence is IIntelligence {
         return uint256(keys.length);
     }
 
-    function encryptIdx(uint256 _keyIdx, bytes memory _plaintext) public returns (bytes memory) {
+    function encryptIdx(
+        uint256 _keyIdx,
+        bytes memory _plaintext
+    ) public returns (bytes memory) {
         if (_keyIdx >= uint256(keys.length)) {
             revert("KEY_NOT_FOUND");
         }
 
         suint256 key = keys[_keyIdx];
-        bytes memory ciphertext = AesLib.AES256GCMEncrypt(key, nonce, _plaintext);
-        bytes memory encryptedData = AesLib.packEncryptedData(ciphertext, nonce);
+        bytes memory ciphertext = AesLib.AES256GCMEncrypt(
+            key,
+            nonce,
+            _plaintext
+        );
+        bytes memory encryptedData = AesLib.packEncryptedData(
+            ciphertext,
+            nonce
+        );
 
         nonce++;
         return encryptedData;
     }
 
-    function decrypt(suint256 key, bytes memory _encryptedData) public view returns (bytes memory) {
-        (bytes memory ct, uint96 nce) = AesLib.parseEncryptedData(_encryptedData);
+    function decrypt(
+        suint256 key,
+        bytes memory _encryptedData
+    ) public view returns (bytes memory) {
+        (bytes memory ct, uint96 nce) = AesLib.parseEncryptedData(
+            _encryptedData
+        );
         return AesLib.AES256GCMDecrypt(key, nce, ct);
     }
 
-    function encrypt(bytes memory _plaintext) external returns (bytes32[] memory, bytes[] memory) {
+    function encrypt(
+        bytes memory _plaintext
+    ) external returns (bytes32[] memory, bytes[] memory) {
         bytes[] memory encryptedData = new bytes[](uint256(keys.length));
         for (uint256 i = 0; i < uint256(keys.length); i++) {
             encryptedData[i] = encryptIdx(i, _plaintext);

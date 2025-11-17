@@ -1,17 +1,17 @@
-import { type Hex } from 'viem';
-import { privateKeyToAccount } from 'viem/accounts';
-import { sanvil, seismicDevnet1 } from 'seismic-viem';
+import { type Hex } from "viem";
+import { privateKeyToAccount } from "viem/accounts";
+import { sanvil, seismicDevnet1 } from "seismic-viem";
 
-import { attachEventListener, createInterface } from './cli';
-import { requireEnv } from './util/config';
-import { waitForTx } from './util/tx';
+import { attachEventListener, createInterface } from "./cli";
+import { requireEnv } from "./util/config";
+import { waitForTx } from "./util/tx";
 
 async function main() {
-  const privKey = requireEnv('ALICE_PRIVATE_KEY') as Hex;
-  const aesKey = requireEnv('INTELLIGENCE_AES_KEY') as Hex;
-  const mode = requireEnv('MODE');
+  const privKey = requireEnv("ALICE_PRIVATE_KEY") as Hex;
+  const aesKey = requireEnv("INTELLIGENCE_AES_KEY") as Hex;
+  const mode = requireEnv("MODE");
 
-  const chain = mode === 'local' ? sanvil : seismicDevnet1;
+  const chain = mode === "local" ? sanvil : seismicDevnet1;
   const account = privateKeyToAccount(privKey);
 
   const { client, contract } = await createInterface(chain, account);

@@ -15,13 +15,12 @@ contract Deploy is Script {
         uint256 miniFaucetPrivkey = vm.envUint("MINI_FAUCET_PRIVATE_KEY");
         uint256 deployerPrivkey = vm.envUint("DEPLOYER_PRIVATE_KEY");
         uint256 alicePrivkey = vm.envUint("ALICE_PRIVATE_KEY");
-        suint256 intelligenceAESKey = suint256(vm.envUint("INTELLIGENCE_AES_KEY"));
+        suint256 intelligenceAESKey = suint256(
+            vm.envUint("INTELLIGENCE_AES_KEY")
+        );
 
         address deployer = vm.addr(deployerPrivkey);
         address alice = vm.addr(alicePrivkey);
-
-        suint256[] memory keys = new suint256[](suint256(1));
-        keys[0] = suint256(intelligenceAESKey);
 
         vm.startBroadcast(miniFaucetPrivkey);
         payable(deployer).transfer(1 ether);
@@ -30,7 +29,13 @@ contract Deploy is Script {
 
         vm.startBroadcast(deployerPrivkey);
         Intelligence intelligence = new Intelligence();
-        MockSRC20 token = new MockSRC20(address(intelligence), "Token", "TKN", 18);
+        intelligence.addKey(suint256(intelligenceAESKey));
+        MockSRC20 token = new MockSRC20(
+            address(intelligence),
+            "Token",
+            "TKN",
+            18
+        );
         token.mint(alice, suint256(2e27));
         vm.stopBroadcast();
     }
