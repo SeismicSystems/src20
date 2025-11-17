@@ -1,5 +1,5 @@
 {
-  "name": "cli",
+  "name": "listener-ts",
   "module": "src/index.ts",
   "type": "module",
   "private": true,

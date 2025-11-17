@@ -1,0 +1,21 @@
+{
+  "name": "sender-ts",
+  "module": "src/index.ts",
+  "type": "module",
+  "private": true,
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "scripts": {
+    "dev": "bun src/index.ts"
+  },
+  "dependencies": {
+    "dotenv": "^17.2.2",
+    "ethers": "^6.15.0",
+    "seismic-viem": "^1.0.46",
+    "viem": "^2.37.6"
+  }
+}
