@@ -64,7 +64,7 @@ async function handleEvent(aesGcmCrypto: AesGcmCrypto, log: any, callback: (data
 function logTransfer(data: any) {
   const { from, to, amount } = data;
 
-  console.log('Transfer(address from, address to, bytes encryptedAmount)\n');
+  console.log('Transfer(address from, address to, uint256 amount)\n');
   console.log('    from:', from);
   console.log('    to:', to);
   console.log('    amount:', amount, '\n');
@@ -73,7 +73,7 @@ function logTransfer(data: any) {
 function logApproval(data: any) {
   const { owner, spender, amount } = data;
 
-  console.log('Approval(address owner, address spender, bytes encryptedAmount)\n');
+  console.log('Approval(address owner, address spender, uint256 amount)\n');
   console.log('    owner:', owner);
   console.log('    spender:', spender);
   console.log('    amount:', amount, '\n');
