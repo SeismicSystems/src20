@@ -1,16 +1,19 @@
 package main
 
 import (
+	"encoding/hex"
 	"fmt"
-	"listener-go/util"
 	"os"
+	"strings"
+
+	"listener-go/util"
 )
 
 func main() {
 	util.LoadEnv()
 
-	aesKey := util.RequireEnv("INTELLIGENCE_AES_KEY")
-	if aesKey == "" {
+	aesKeyStr := util.RequireEnv("INTELLIGENCE_AES_KEY")
+	if aesKeyStr == "" {
 		fmt.Fprintf(os.Stderr, "Error: INTELLIGENCE_AES_KEY is required\n")
 		os.Exit(1)
 	}
@@ -28,6 +31,12 @@ func main() {
 		chain = util.SeismicDevnet
 	}
 
+	aesKey, err := hex.DecodeString(strings.TrimPrefix(aesKeyStr, "0x"))
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error: Failed to convert AES key string to bytes: %v\n", err)
+		os.Exit(1)
+	}
+
 	client := util.CreateInterface(chain)
 	if client == nil {
 		fmt.Fprintf(os.Stderr, "Error: Failed to create client\n")
@@ -36,5 +45,5 @@ func main() {
 	defer client.Close()
 
 	fmt.Printf("Listening for events on network: %s\n\n", chain.Name)
-	AttachEventListener(client, aesKey)
+	attachEventListener(client, aesKey)
 }

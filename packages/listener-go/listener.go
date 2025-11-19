@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"listener-go/util"
 	"os"
-	"strings"
 	"sync"
 
+	"github.com/SeismicSystems/aes"
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
@@ -16,10 +16,13 @@ import (
 	"github.com/ethereum/go-ethereum/ethclient"
 )
 
-func AttachEventListener(client *ethclient.Client, aesKey string) {
-	aesKey = strings.TrimPrefix(aesKey, "0x")
-	keyHash := util.Keccak256(aesKey)
-	aesGcmCrypto := util.AesGcmCrypto(aesKey)
+func attachEventListener(client *ethclient.Client, aesKey []byte) {
+	keyHash := aes.Keccak256Hash(aesKey)
+	aesGcm, err := aes.CreateAESGCM(aesKey)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error: Failed to create AES GCM: %v\n", err)
+		os.Exit(1)
+	}
 
 	SRC20Abi := util.ParseABI()
 	src20Address := common.HexToAddress(util.LoadSRC20Address())
@@ -31,7 +34,7 @@ func AttachEventListener(client *ethclient.Client, aesKey string) {
 	go func() {
 		defer wg.Done()
 		transferEventID := SRC20Abi.Events["Transfer"].ID
-		sub, logs := SubscribeToEvent(client, src20Address, transferEventID, keyHash)
+		sub, logs := subscribeToEvent(client, src20Address, transferEventID, keyHash)
 		defer sub.Unsubscribe()
 
 		for {
@@ -40,7 +43,7 @@ func AttachEventListener(client *ethclient.Client, aesKey string) {
 				fmt.Fprintf(os.Stderr, "Error subscribing to Transfer: %v\n", err)
 				return
 			case vLog := <-logs:
-				HandleTransferEvent(SRC20Abi, vLog, aesGcmCrypto)
+				handleTransferEvent(SRC20Abi, vLog, aesGcm)
 			}
 		}
 	}()
@@ -49,7 +52,7 @@ func AttachEventListener(client *ethclient.Client, aesKey string) {
 	go func() {
 		defer wg.Done()
 		approvalEventID := SRC20Abi.Events["Approval"].ID
-		sub, logs := SubscribeToEvent(client, src20Address, approvalEventID, keyHash)
+		sub, logs := subscribeToEvent(client, src20Address, approvalEventID, keyHash)
 		defer sub.Unsubscribe()
 
 		for {
@@ -58,7 +61,7 @@ func AttachEventListener(client *ethclient.Client, aesKey string) {
 				fmt.Fprintf(os.Stderr, "Error subscribing to Approval: %v\n", err)
 				return
 			case vLog := <-logs:
-				HandleApprovalEvent(SRC20Abi, vLog, aesGcmCrypto)
+				handleApprovalEvent(SRC20Abi, vLog, aesGcm)
 			}
 		}
 	}()
@@ -66,7 +69,7 @@ func AttachEventListener(client *ethclient.Client, aesKey string) {
 	wg.Wait()
 }
 
-func SubscribeToEvent(client *ethclient.Client, src20Address common.Address, eventID common.Hash, keyHash common.Hash) (ethereum.Subscription, chan types.Log) {
+func subscribeToEvent(client *ethclient.Client, src20Address common.Address, eventID common.Hash, keyHash common.Hash) (ethereum.Subscription, chan types.Log) {
 	query := ethereum.FilterQuery{
 		Addresses: []common.Address{src20Address},
 		Topics: [][]common.Hash{
@@ -85,7 +88,7 @@ func SubscribeToEvent(client *ethclient.Client, src20Address common.Address, eve
 	return sub, logs
 }
 
-func HandleTransferEvent(SRC20Abi *abi.ABI, vLog types.Log, aesGcmCrypto cipher.AEAD) {
+func handleTransferEvent(SRC20Abi *abi.ABI, vLog types.Log, aesGcm cipher.AEAD) {
 	var transferEvent struct {
 		From            common.Address
 		To              common.Address
@@ -99,7 +102,11 @@ func HandleTransferEvent(SRC20Abi *abi.ABI, vLog types.Log, aesGcmCrypto cipher.
 
 	transferEvent.From = common.BytesToAddress(vLog.Topics[1].Bytes())
 	transferEvent.To = common.BytesToAddress(vLog.Topics[2].Bytes())
-	amount := util.DecryptAmount(transferEvent.EncryptedAmount, aesGcmCrypto)
+	amount, err := aes.DecryptAESGCM(transferEvent.EncryptedAmount, aesGcm)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to decrypt Transfer event: %v\n", err)
+		return
+	}
 
 	fmt.Printf(
 		"Transfer(address from, address to, uint256 amount)\n\n"+
@@ -112,7 +119,7 @@ func HandleTransferEvent(SRC20Abi *abi.ABI, vLog types.Log, aesGcmCrypto cipher.
 	)
 }
 
-func HandleApprovalEvent(SRC20Abi *abi.ABI, vLog types.Log, aesGcmCrypto cipher.AEAD) {
+func handleApprovalEvent(SRC20Abi *abi.ABI, vLog types.Log, aesGcm cipher.AEAD) {
 	var approvalEvent struct {
 		Owner           common.Address
 		Spender         common.Address
@@ -126,7 +133,11 @@ func HandleApprovalEvent(SRC20Abi *abi.ABI, vLog types.Log, aesGcmCrypto cipher.
 
 	approvalEvent.Owner = common.BytesToAddress(vLog.Topics[1].Bytes())
 	approvalEvent.Spender = common.BytesToAddress(vLog.Topics[2].Bytes())
-	amount := util.DecryptAmount(approvalEvent.EncryptedAmount, aesGcmCrypto)
+	amount, err := aes.DecryptAESGCM(approvalEvent.EncryptedAmount, aesGcm)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to decrypt Approval event: %v\n", err)
+		return
+	}
 
 	fmt.Printf(
 		"Approval(address owner, address spender, uint256 amount)\n\n"+
