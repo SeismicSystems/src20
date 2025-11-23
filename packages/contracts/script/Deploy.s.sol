@@ -4,7 +4,8 @@ pragma solidity ^0.8.13;
 import {Script} from "forge-std/Script.sol";
 import {console} from "forge-std/console.sol";
 
-import {AesLib} from "../src/AesLib.sol";
+import {AesLib} from "../lib/AesLib.sol";
+
 import {Intelligence} from "../src/Intelligence.sol";
 import {SRC20} from "../src/SRC20.sol";
 

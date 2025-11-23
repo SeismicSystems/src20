@@ -48,16 +48,18 @@ library AesLib {
      * - The staticcall to the AES_ENC_PRECOMPILE must succeed.
      * - If the precompile call fails, this function reverts with `AESPrecompileCallFailed()`.
      */
-    function AES256GCMEncrypt(suint256 aes_key, uint96 nonce, bytes memory plaintext)
-        internal
-        view
-        returns (bytes memory)
-    {
+    function AES256GCMEncrypt(
+        suint256 aes_key,
+        uint96 nonce,
+        bytes memory plaintext
+    ) internal view returns (bytes memory) {
         // Concatenate and encode input args for the precompile
         bytes memory input = abi.encodePacked(aes_key, nonce, plaintext);
 
         // Call the AES encryption precompiled contract
-        (bool success, bytes memory output) = AES_ENC_PRECOMPILE.staticcall(input);
+        (bool success, bytes memory output) = AES_ENC_PRECOMPILE.staticcall(
+            input
+        );
 
         if (!success) {
             revert AESPrecompileCallFailed();
@@ -77,16 +79,18 @@ library AesLib {
      * - The staticcall to the AES_DEC_PRECOMPILE must succeed.
      * - If the precompile call fails, this function reverts with `AESPrecompileCallFailed()`.
      */
-    function AES256GCMDecrypt(suint256 aes_key, uint96 nonce, bytes memory ciphertext)
-        internal
-        view
-        returns (bytes memory)
-    {
+    function AES256GCMDecrypt(
+        suint256 aes_key,
+        uint96 nonce,
+        bytes memory ciphertext
+    ) internal view returns (bytes memory) {
         // Concatenate and encode input args for the precompile
         bytes memory input = abi.encodePacked(aes_key, nonce, ciphertext);
 
         // Call the AES decryption precompiled contract
-        (bool success, bytes memory output) = AES_DEC_PRECOMPILE.staticcall(input);
+        (bool success, bytes memory output) = AES_DEC_PRECOMPILE.staticcall(
+            input
+        );
 
         if (!success) {
             revert AESPrecompileCallFailed();
@@ -108,7 +112,9 @@ library AesLib {
      * - The staticcall to the HKDF_PRECOMPILE must succeed.
      * - The precompile is expected to return exactly 32 bytes. Otherwise, it reverts with `InvalidHKDFOutputLength()`.
      */
-    function HKDFDeriveKey(bytes memory input) internal view returns (suint result) {
+    function HKDFDeriveKey(
+        bytes memory input
+    ) internal view returns (suint result) {
         (bool success, bytes memory output) = HKDF_PRECOMPILE.staticcall(input);
 
         if (!success) {
@@ -124,15 +130,16 @@ library AesLib {
         }
     }
 
-    function packEncryptedData(bytes memory _ciphertext, uint96 _nonce) public pure returns (bytes memory) {
+    function packEncryptedData(
+        bytes memory _ciphertext,
+        uint96 _nonce
+    ) public pure returns (bytes memory) {
         return abi.encodePacked(_ciphertext, _nonce);
     }
 
-    function parseEncryptedData(bytes memory _encryptedData)
-        public
-        pure
-        returns (bytes memory ciphertext, uint96 nonce)
-    {
+    function parseEncryptedData(
+        bytes memory _encryptedData
+    ) public pure returns (bytes memory ciphertext, uint96 nonce) {
         uint256 nonceStart = _encryptedData.length - 12;
 
         ciphertext = new bytes(nonceStart);

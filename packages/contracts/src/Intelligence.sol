@@ -1,11 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
-import {AesLib} from "./AesLib.sol";
+import {AesLib} from "../lib/AesLib.sol";
+
 import {IIntelligence} from "./IIntelligence.sol";
 
 contract Intelligence is IIntelligence {
-    address public immutable INITIAL_OWNER =
+    address public constant INITIAL_OWNER =
         address(0x6346d64A3f31774283b72926B75Ffda9662266ce);
     address public owner;
 
@@ -13,17 +14,15 @@ contract Intelligence is IIntelligence {
     bytes32[] public keyHashes;
     uint96 public nonce;
 
-    constructor() {}
-
     function numKeys() public view returns (uint256) {
-        return uint256(keys.length);
+        return keys.length;
     }
 
     function encryptIdx(
         uint256 _keyIdx,
         bytes memory _plaintext
     ) public returns (bytes memory) {
-        if (_keyIdx >= uint256(keys.length)) {
+        if (_keyIdx >= keys.length) {
             revert("KEY_NOT_FOUND");
         }
 
@@ -55,14 +54,14 @@ contract Intelligence is IIntelligence {
     function encrypt(
         bytes memory _plaintext
     ) external returns (bytes32[] memory, bytes[] memory) {
-        bytes[] memory encryptedData = new bytes[](uint256(keys.length));
-        for (uint256 i = 0; i < uint256(keys.length); i++) {
+        bytes[] memory encryptedData = new bytes[](keys.length);
+        for (uint256 i = 0; i < keys.length; i++) {
             encryptedData[i] = encryptIdx(i, _plaintext);
         }
         return (keyHashes, encryptedData);
     }
 
-    function addKey(suint256 _key) external onlyOwner {
+    function addKey(suint256 _key) external uniqueKey(_key) onlyOwner {
         keys.push(_key);
         keyHashes.push(hashKey(_key));
     }
@@ -73,7 +72,7 @@ contract Intelligence is IIntelligence {
             revert("KEY_NOT_FOUND");
         }
 
-        keys[idx] = keys[uint256(keys.length) - 1];
+        keys[idx] = keys[keys.length - 1];
         keys.pop();
 
         keyHashes[idx] = keyHashes[keyHashes.length - 1];
@@ -85,7 +84,7 @@ contract Intelligence is IIntelligence {
     }
 
     function findKeyIndex(suint256 _key) internal view returns (uint256) {
-        for (uint256 i = 0; i < uint256(keys.length); i++) {
+        for (uint256 i = 0; i < keys.length; i++) {
             if (keys[i] == _key) {
                 return i;
             }
@@ -97,6 +96,11 @@ contract Intelligence is IIntelligence {
         owner = newOwner;
 
         emit OwnershipTransferred(msg.sender, newOwner);
+    }
+
+    modifier uniqueKey(suint256 _key) {
+        require(findKeyIndex(_key) == type(uint256).max, "DUPLICATE_KEY");
+        _;
     }
 
     modifier onlyOwner() virtual {
