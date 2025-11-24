@@ -4,9 +4,11 @@ pragma solidity ^0.8.13;
 import {SRC20} from "../../../src/SRC20.sol";
 
 contract MockSRC20 is SRC20 {
-    constructor(address _intelligence, string memory _name, string memory _symbol, uint8 _decimals)
-        SRC20(_intelligence, _name, _symbol, _decimals)
-    {}
+    constructor(
+        string memory _name,
+        string memory _symbol,
+        uint8 _decimals
+    ) SRC20(_name, _symbol, _decimals) {}
 
     function totalSupply() public view virtual returns (uint256) {
         return _totalSupply();

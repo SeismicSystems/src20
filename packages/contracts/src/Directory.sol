@@ -4,8 +4,11 @@ pragma solidity ^0.8.13;
 import {AesLib} from "../lib/AesLib.sol";
 import {RngLib} from "../lib/RngLib.sol";
 
-contract Directory {
+import {IDirectory} from "./IDirectory.sol";
+
+contract Directory is IDirectory {
     mapping(address => suint256) private keys;
+    uint96 public nonce;
 
     event KeyGenerated(address indexed addr);
 
@@ -16,20 +19,63 @@ contract Directory {
         emit KeyGenerated(msg.sender);
     }
 
-    function getKey() public view hasKey returns (uint256) {
+    function getKey() public view returns (uint256) {
         return uint256(keys[msg.sender]);
-    }
-
-    function getKeyHash() public view hasKey returns (bytes32) {
-        return keccak256(abi.encodePacked(keys[msg.sender]));
     }
 
     function checkHasKey(address _addr) public view returns (bool) {
         return keys[_addr] != suint256(0);
     }
 
-    modifier hasKey() {
-        require(keys[msg.sender] != suint256(0), "NO_KEY_GENERATED");
-        _;
+    function keyHash(address to) public view returns (bytes32) {
+        return keccak256(abi.encodePacked(keys[to]));
+    }
+
+    function encrypt(
+        address to,
+        bytes memory _plaintext
+    ) public returns (bytes memory) {
+        suint256 key = keys[to];
+
+        bytes memory ciphertext = AesLib.AES256GCMEncrypt(
+            key,
+            nonce,
+            _plaintext
+        );
+        bytes memory encryptedData = packEncryptedData(ciphertext, nonce);
+
+        nonce++;
+        return encryptedData;
+    }
+
+    function decrypt(
+        bytes memory _encryptedData
+    ) public view returns (bytes memory) {
+        (bytes memory ct, uint96 nce) = parseEncryptedData(_encryptedData);
+        return AesLib.AES256GCMDecrypt(keys[msg.sender], nce, ct);
+    }
+
+    function packEncryptedData(
+        bytes memory _ciphertext,
+        uint96 _nonce
+    ) public pure returns (bytes memory) {
+        return abi.encodePacked(_ciphertext, _nonce);
+    }
+
+    function parseEncryptedData(
+        bytes memory _encryptedData
+    ) public pure returns (bytes memory ct, uint96 nce) {
+        uint256 nonceStart = _encryptedData.length - 12;
+
+        ct = new bytes(nonceStart);
+        for (uint256 i = 0; i < nonceStart; i++) {
+            ct[i] = _encryptedData[i];
+        }
+
+        bytes memory nonceBytes = new bytes(12);
+        for (uint256 i = 0; i < 12; i++) {
+            nonceBytes[i] = _encryptedData[nonceStart + i];
+        }
+        nce = uint96(bytes12(nonceBytes));
     }
 }

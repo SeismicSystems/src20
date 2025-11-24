@@ -129,28 +129,4 @@ library AesLib {
             result := mload(add(output, 32))
         }
     }
-
-    function packEncryptedData(
-        bytes memory _ciphertext,
-        uint96 _nonce
-    ) public pure returns (bytes memory) {
-        return abi.encodePacked(_ciphertext, _nonce);
-    }
-
-    function parseEncryptedData(
-        bytes memory _encryptedData
-    ) public pure returns (bytes memory ciphertext, uint96 nonce) {
-        uint256 nonceStart = _encryptedData.length - 12;
-
-        ciphertext = new bytes(nonceStart);
-        for (uint256 i = 0; i < nonceStart; i++) {
-            ciphertext[i] = _encryptedData[i];
-        }
-
-        bytes memory nonceBytes = new bytes(12);
-        for (uint256 i = 0; i < 12; i++) {
-            nonceBytes[i] = _encryptedData[nonceStart + i];
-        }
-        nonce = uint96(bytes12(nonceBytes));
-    }
 }

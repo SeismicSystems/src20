@@ -1,91 +1,63 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
-import {AesLib} from "../lib/AesLib.sol";
-
+import {IDirectory} from "./IDirectory.sol";
 import {IIntelligence} from "./IIntelligence.sol";
 
 contract Intelligence is IIntelligence {
+    address public constant DIRECTORY_ADDRESS =
+        address(0x1000000000000000000000000000000000000005);
+    IDirectory public immutable directory = IDirectory(DIRECTORY_ADDRESS);
+
     address public constant INITIAL_OWNER =
         address(0x6346d64A3f31774283b72926B75Ffda9662266ce);
     address public owner;
 
-    suint256[] private keys;
-    bytes32[] public keyHashes;
-    uint96 public nonce;
+    address[] public providers;
 
-    function numKeys() public view returns (uint256) {
-        return keys.length;
+    event OwnershipTransferred(address indexed owner);
+    event ProviderAdded(address indexed provider);
+    event ProviderRemoved(address indexed provider);
+
+    function numProviders() public view returns (uint256) {
+        return providers.length;
     }
 
-    function encryptIdx(
-        uint256 _keyIdx,
-        bytes memory _plaintext
-    ) public returns (bytes memory) {
-        if (_keyIdx >= keys.length) {
-            revert("KEY_NOT_FOUND");
-        }
-
-        suint256 key = keys[_keyIdx];
-        bytes memory ciphertext = AesLib.AES256GCMEncrypt(
-            key,
-            nonce,
-            _plaintext
-        );
-        bytes memory encryptedData = AesLib.packEncryptedData(
-            ciphertext,
-            nonce
-        );
-
-        nonce++;
-        return encryptedData;
-    }
-
-    function decrypt(
-        suint256 key,
-        bytes memory _encryptedData
-    ) public view returns (bytes memory) {
-        (bytes memory ct, uint96 nce) = AesLib.parseEncryptedData(
-            _encryptedData
-        );
-        return AesLib.AES256GCMDecrypt(key, nce, ct);
-    }
-
-    function encrypt(
+    function encryptToProviders(
         bytes memory _plaintext
     ) external returns (bytes32[] memory, bytes[] memory) {
-        bytes[] memory encryptedData = new bytes[](keys.length);
-        for (uint256 i = 0; i < keys.length; i++) {
-            encryptedData[i] = encryptIdx(i, _plaintext);
+        bytes32[] memory hashes = new bytes32[](numProviders());
+        bytes[] memory encryptedData = new bytes[](numProviders());
+        for (uint256 i = 0; i < numProviders(); i++) {
+            hashes[i] = directory.keyHash(providers[i]);
+            encryptedData[i] = directory.encrypt(providers[i], _plaintext);
         }
-        return (keyHashes, encryptedData);
+        return (hashes, encryptedData);
     }
 
-    function addKey(suint256 _key) external uniqueKey(_key) onlyOwner {
-        keys.push(_key);
-        keyHashes.push(hashKey(_key));
+    function addProvider(
+        address _provider
+    ) external uniqueProvider(_provider) onlyOwner {
+        providers.push(_provider);
+
+        emit ProviderAdded(_provider);
     }
 
-    function removeKey(suint256 _key) external onlyOwner {
-        uint256 idx = findKeyIndex(_key);
+    function removeProvider(address _provider) external onlyOwner {
+        uint256 idx = findProvider(_provider);
         if (idx == type(uint256).max) {
-            revert("KEY_NOT_FOUND");
+            revert("PROVIDER_NOT_FOUND");
         }
 
-        keys[idx] = keys[keys.length - 1];
-        keys.pop();
+        providers[idx] = providers[providers.length - 1];
+        providers.pop();
 
-        keyHashes[idx] = keyHashes[keyHashes.length - 1];
-        keyHashes.pop();
+        emit ProviderRemoved(_provider);
     }
 
-    function hashKey(suint256 _key) internal pure returns (bytes32) {
-        return keccak256(abi.encodePacked(_key));
-    }
-
-    function findKeyIndex(suint256 _key) internal view returns (uint256) {
-        for (uint256 i = 0; i < keys.length; i++) {
-            if (keys[i] == _key) {
+    function findProvider(address _provider) internal view returns (uint256) {
+        for (uint256 i = 0; i < numProviders(); i++) {
+            if (providers[i] == _provider) {
                 return i;
             }
         }
@@ -94,12 +66,14 @@ contract Intelligence is IIntelligence {
 
     function transferOwnership(address newOwner) public virtual onlyOwner {
         owner = newOwner;
-
-        emit OwnershipTransferred(msg.sender, newOwner);
+        emit OwnershipTransferred(newOwner);
     }
 
-    modifier uniqueKey(suint256 _key) {
-        require(findKeyIndex(_key) == type(uint256).max, "DUPLICATE_KEY");
+    modifier uniqueProvider(address _provider) {
+        require(
+            findProvider(_provider) == type(uint256).max,
+            "DUPLICATE_PROVIDER"
+        );
         _;
     }
 

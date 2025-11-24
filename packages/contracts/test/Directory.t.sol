@@ -9,20 +9,37 @@ import {Directory} from "../src/Directory.sol";
 contract DirectoryTest is Test {
     Directory directory;
 
+    bytes sampleMsg = "hello world";
+    address alice = makeAddr("alice");
+    address bob = makeAddr("bob");
+
     function setUp() public {
         directory = new Directory();
-    }
 
-    function testGenKey() public {
+        vm.prank(alice);
         directory.genKey();
-        assert(directory.checkHasKey(address(this)));
+        vm.prank(bob);
+        directory.genKey();
     }
 
-    function test_RevertIfRequestWithoutGenerating() public {
-        vm.expectRevert();
-        directory.getKey();
+    function testEncrypt() public {
+        bytes memory encryptedData = directory.encrypt(alice, sampleMsg);
+        vm.prank(alice);
+        bytes memory decryptResult = directory.decrypt(encryptedData);
 
-        vm.expectRevert();
-        directory.getKeyHash();
+        assertEq(decryptResult, sampleMsg);
+    }
+
+    function testEncryptSequence() public {
+        bytes memory encryptedDataBob = directory.encrypt(bob, sampleMsg);
+        bytes memory encryptedDataAlice = directory.encrypt(alice, sampleMsg);
+
+        vm.prank(bob);
+        bytes memory decryptResultBob = directory.decrypt(encryptedDataBob);
+        vm.prank(alice);
+        bytes memory decryptResultAlice = directory.decrypt(encryptedDataAlice);
+
+        assertEq(decryptResultBob, sampleMsg);
+        assertEq(decryptResultAlice, sampleMsg);
     }
 }
