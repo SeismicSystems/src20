@@ -10,13 +10,19 @@ contract Directory is IDirectory {
     mapping(address => suint256) private keys;
     uint96 public nonce;
 
-    event KeyGenerated(address indexed addr);
+    event KeySet(address indexed addr);
 
     function genKey() public {
         suint256 key = AesLib.HKDFDeriveKey(RngLib.getRandomBytes(32, 0));
         keys[msg.sender] = key;
 
-        emit KeyGenerated(msg.sender);
+        emit KeySet(msg.sender);
+    }
+
+    function setKey(suint256 _key) public {
+        keys[msg.sender] = _key;
+
+        emit KeySet(msg.sender);
     }
 
     function getKey() public view returns (uint256) {
