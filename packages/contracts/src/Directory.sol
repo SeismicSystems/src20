@@ -2,22 +2,12 @@
 pragma solidity ^0.8.13;
 
 import {AesLib} from "../lib/AesLib.sol";
-import {RngLib} from "../lib/RngLib.sol";
 
 import {IDirectory} from "./IDirectory.sol";
 
 contract Directory is IDirectory {
     mapping(address => suint256) private keys;
     uint96 public nonce;
-
-    event KeySet(address indexed addr);
-
-    function genKey() public {
-        suint256 key = AesLib.HKDFDeriveKey(RngLib.getRandomBytes(32, 0));
-        keys[msg.sender] = key;
-
-        emit KeySet(msg.sender);
-    }
 
     function setKey(suint256 _key) public {
         keys[msg.sender] = _key;

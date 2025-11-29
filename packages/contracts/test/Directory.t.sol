@@ -17,9 +17,9 @@ contract DirectoryTest is Test {
         directory = new Directory();
 
         vm.prank(alice);
-        directory.genKey();
+        directory.setKey(suint256(0xABC));
         vm.prank(bob);
-        directory.genKey();
+        directory.setKey(suint256(0xDEF));
     }
 
     function testEncrypt() public {
@@ -28,19 +28,6 @@ contract DirectoryTest is Test {
         bytes memory decryptResult = directory.decrypt(encryptedData);
 
         assertEq(decryptResult, sampleMsg);
-    }
-
-    function testSetKey() public {
-        vm.prank(alice);
-        directory.setKey(suint256(0x123));
-
-        bytes memory encryptedData = directory.encrypt(alice, sampleMsg);
-        vm.prank(alice);
-        bytes memory decryptResult = directory.decrypt(encryptedData);
-        assertEq(decryptResult, sampleMsg);
-
-        vm.prank(alice);
-        assertEq(directory.getKey(), 0x123);
     }
 
     function testEncryptSequence() public {

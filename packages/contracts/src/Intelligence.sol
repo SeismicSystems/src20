@@ -6,7 +6,7 @@ import {IIntelligence} from "./IIntelligence.sol";
 
 contract Intelligence is IIntelligence {
     address public constant DIRECTORY_ADDRESS =
-        address(0x1000000000000000000000000000000000000005);
+        address(0x1000000000000000000000000000000000000003);
     IDirectory public immutable directory = IDirectory(DIRECTORY_ADDRESS);
 
     address public constant INITIAL_OWNER =
@@ -14,10 +14,6 @@ contract Intelligence is IIntelligence {
     address public owner;
 
     address[] public providers;
-
-    event OwnershipTransferred(address indexed owner);
-    event ProviderAdded(address indexed provider);
-    event ProviderRemoved(address indexed provider);
 
     function numProviders() public view returns (uint256) {
         return providers.length;

@@ -33,11 +33,11 @@ contract IntelligenceTest is Test {
         );
         directory = Directory(intelligence.DIRECTORY_ADDRESS());
         vm.prank(alice);
-        directory.genKey();
+        directory.setKey(suint256(0x123));
         vm.prank(alice);
         aliceKey = suint256(directory.getKey());
         vm.prank(bob);
-        directory.genKey();
+        directory.setKey(suint256(0x456));
         vm.prank(bob);
         bobKey = suint256(directory.getKey());
     }
@@ -68,7 +68,7 @@ contract IntelligenceTest is Test {
     function testAddProvider() public {
         address charlie = makeAddr("charlie");
         vm.prank(charlie);
-        directory.genKey();
+        directory.setKey(suint256(0x123));
         vm.prank(charlie);
         suint256 charlieKey = suint256(directory.getKey());
 

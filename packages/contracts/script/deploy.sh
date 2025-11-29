@@ -45,6 +45,10 @@ else
 fi
 BROADCAST_OUT=./broadcast/Deploy.s.sol/$CHAIN_ID/run-latest.json
 
+sforge script script/Fund.s.sol:Fund \
+    --rpc-url $RPC_URL \
+    --broadcast
+
 sforge script script/Deploy.s.sol:Deploy \
     --rpc-url $RPC_URL \
     --broadcast

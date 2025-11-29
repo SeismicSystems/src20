@@ -43,7 +43,7 @@ abstract contract SRC20 {
     //////////////////////////////////////////////////////////////*/
 
     address public constant INTELLIGENCE_ADDRESS =
-        address(0x1000000000000000000000000000000000000006);
+        address(0x1000000000000000000000000000000000000004);
     IIntelligence public immutable intelligence =
         IIntelligence(INTELLIGENCE_ADDRESS);
 
