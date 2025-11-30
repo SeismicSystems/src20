@@ -38,7 +38,8 @@ array_to_json() {
 source ./.env
 if [ "$MODE" == "local" ]; then
     RPC_URL=http://127.0.0.1:8545
-    CHAIN_ID=31337
+    # CHAIN_ID=31337
+    CHAIN_ID=5124
 else
     RPC_URL=https://node-1.seismicdev.net/rpc
     CHAIN_ID=5124

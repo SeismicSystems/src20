@@ -25,13 +25,13 @@ contract Deploy is Script {
         );
         directory.setKey(intelligenceAESKey);
 
-        IIntelligence intelligence = IIntelligence(
-            address(0x1000000000000000000000000000000000000005)
-        );
-        intelligence.addProvider(deployer);
+        //     IIntelligence intelligence = IIntelligence(
+        //         address(0x1000000000000000000000000000000000000005)
+        //     );
+        //     intelligence.addProvider(deployer);
 
-        MockSRC20 token = new MockSRC20("Token", "TKN", 18);
-        token.mint(alice, suint256(2e27));
+        //     MockSRC20 token = new MockSRC20("Token", "TKN", 18);
+        //     token.mint(alice, suint256(2e27));
         vm.stopBroadcast();
     }
 }

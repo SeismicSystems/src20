@@ -27,10 +27,6 @@ contract IntelligenceTest is Test {
         intelligence.addProvider(bob);
         vm.stopPrank();
 
-        deployCodeTo(
-            "Directory.sol:Directory",
-            intelligence.DIRECTORY_ADDRESS()
-        );
         directory = Directory(intelligence.DIRECTORY_ADDRESS());
         vm.prank(alice);
         directory.setKey(suint256(0xABC));

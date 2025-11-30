@@ -10,6 +10,7 @@ async function main() {
   const mode = requireEnv("MODE");
 
   const chain = mode === "local" ? sanvil : seismicDevnet1;
+  chain.id = 5124;
   const account = privateKeyToAccount(privKey);
   const { client, contract } = await createInterface(chain, account);
 
