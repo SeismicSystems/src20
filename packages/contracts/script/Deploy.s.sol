@@ -21,12 +21,12 @@ contract Deploy is Script {
 
         vm.startBroadcast(deployerPrivkey);
         IDirectory directory = IDirectory(
-            address(0x1000000000000000000000000000000000000003)
+            address(0x1000000000000000000000000000000000000004)
         );
         directory.setKey(intelligenceAESKey);
 
         IIntelligence intelligence = IIntelligence(
-            address(0x1000000000000000000000000000000000000004)
+            address(0x1000000000000000000000000000000000000005)
         );
         intelligence.addProvider(deployer);
 

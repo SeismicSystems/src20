@@ -33,11 +33,11 @@ contract IntelligenceTest is Test {
         );
         directory = Directory(intelligence.DIRECTORY_ADDRESS());
         vm.prank(alice);
-        directory.setKey(suint256(0x123));
+        directory.setKey(suint256(0xABC));
         vm.prank(alice);
         aliceKey = suint256(directory.getKey());
         vm.prank(bob);
-        directory.setKey(suint256(0x456));
+        directory.setKey(suint256(0xDEF));
         vm.prank(bob);
         bobKey = suint256(directory.getKey());
     }

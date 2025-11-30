@@ -6,8 +6,8 @@ import {IIntelligence} from "./IIntelligence.sol";
 
 contract Intelligence is IIntelligence {
     address public constant DIRECTORY_ADDRESS =
-        address(0x1000000000000000000000000000000000000003);
-    IDirectory public immutable directory = IDirectory(DIRECTORY_ADDRESS);
+        address(0x1000000000000000000000000000000000000004);
+    IDirectory public constant directory = IDirectory(DIRECTORY_ADDRESS);
 
     address public constant INITIAL_OWNER =
         address(0x6346d64A3f31774283b72926B75Ffda9662266ce);
