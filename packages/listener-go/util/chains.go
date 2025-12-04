@@ -10,7 +10,7 @@ var Sanvil = Chain{
 	RPCUrl: "ws://127.0.0.1:8545",
 }
 
-var SeismicDevnet = Chain{
-	Name:   "Seismic Devnet",
-	RPCUrl: "wss://node-1.seismicdev.net/ws",
+var IntegrationChain = Chain{
+	Name:   "Integration Chain",
+	RPCUrl: "wss://lyron.seismicdev.net/ws",
 }

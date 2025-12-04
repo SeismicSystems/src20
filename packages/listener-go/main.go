@@ -28,7 +28,7 @@ func main() {
 	if mode == "local" {
 		chain = util.Sanvil
 	} else {
-		chain = util.SeismicDevnet
+		chain = util.IntegrationChain
 	}
 
 	aesKey, err := hex.DecodeString(strings.TrimPrefix(aesKeyStr, "0x"))

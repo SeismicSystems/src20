@@ -3,7 +3,9 @@ pragma solidity ^0.8.13;
 
 import {ERC20} from "solmate/tokens/ERC20.sol";
 
-import {IIntelligence} from "./IIntelligence.sol";
+interface IIntelligence {
+    function encryptToProviders(bytes memory _plaintext) external returns (bytes32[] memory, bytes[] memory);
+}
 
 /// @notice Modern ERC20 + EIP-2612 implementation with confidential balances and transfers.
 /// @author Modified from Solmate (https://github.com/transmissions11/solmate/blob/main/src/tokens/ERC20.sol)
