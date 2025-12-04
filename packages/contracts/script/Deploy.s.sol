@@ -20,6 +20,10 @@ contract Deploy is Script {
         address alice = vm.addr(alicePrivkey);
 
         vm.startBroadcast(deployerPrivkey);
+
+        // bytes memory code = address(0x1000000000000000000000000000000000000004).code;
+        // console.logBytes(code);
+
         IDirectory directory = IDirectory(
             address(0x1000000000000000000000000000000000000004)
         );
