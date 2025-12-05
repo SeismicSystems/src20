@@ -15,27 +15,21 @@ async function main() {
 
   const chain = mode === 'local' ? sanvil : integrationChain;
   const accounts = Object.fromEntries(
-    Object.entries(privKeys).map(([name, privKey]) => [
-      name,
-      privateKeyToAccount(privKey as Hex)
-    ])
+    Object.entries(privKeys).map(([name, privKey]) => [name, privateKeyToAccount(privKey as Hex)])
   );
   const interfaces = Object.fromEntries(
     await Promise.all(
       Object.entries(accounts).map(async ([name, account]) => [
         name,
-        await createInterface(chain, account)
+        await createInterface(chain, account),
       ])
     )
   );
   const addresses = Object.fromEntries(
-    Object.entries(accounts).map(([name, account]) => [
-      name,
-      account.address
-    ])
+    Object.entries(accounts).map(([name, account]) => [name, account.address])
   );
 
-  console.log("Sending transactions on network:", chain.name);
+  console.log('Sending transactions on network:', chain.name);
 
   // Pay a random amount, cycle from Alice -> Bob -> Charlie -> Alice -> ...
   while (true) {
