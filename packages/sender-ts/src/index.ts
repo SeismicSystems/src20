@@ -2,6 +2,7 @@ import { type Hex } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { sanvil } from 'seismic-viem';
 
+import { logger } from './util/logger';
 import { requireEnv } from './util/config';
 import { createInterface, waitForTx, sleep, integrationChain } from './util/tx';
 
@@ -29,33 +30,43 @@ async function main() {
     Object.entries(accounts).map(([name, account]) => [name, account.address])
   );
 
-  console.log('Running on on network:', chain.name, "\n");
+  logger.info(`Running on on network: ${chain.name}`)
 
   // Pay a random amount, cycle from Alice -> Bob -> Charlie -> Alice -> ...
   while (true) {
-    const amount = BigInt(Math.floor(Math.random() * (Number(1e18) - 1) + 1));
+    try {
+      const amount = BigInt(Math.floor(Math.random() * (Number(1e18) - 1) + 1));
+      logger.info(`Sampled amount: ${amount}`)
 
-    console.log('Sending Alice -> Bob:', amount, "\n");
-    await waitForTx(
-      interfaces['alice'].contract.write.transfer([addresses['bob'], amount]),
-      interfaces['alice'].client
-    );
-    await sleep(5000);
+      await waitForTx(
+        interfaces['alice'].contract.write.transfer([addresses['bob'], amount]),
+        interfaces['alice'].client
+      );
+      logger.info('    Finished Alice -> Bob')
+      await sleep(5000);
 
-    console.log('Sending Bob -> Charlie:', amount, "\n");
-    await waitForTx(
-      interfaces['bob'].contract.write.transfer([addresses['charlie'], amount]),
-      interfaces['bob'].client
-    );
-    await sleep(5000);
+      await waitForTx(
+        interfaces['bob'].contract.write.transfer([addresses['charlie'], amount]),
+        interfaces['bob'].client
+      );
+      logger.info('    Finished Bob -> Charlie')
+      await sleep(5000);
 
-    console.log('Sending Charlie -> Alice:', amount, "\n");
-    await waitForTx(
-      interfaces['charlie'].contract.write.transfer([addresses['alice'], amount]),
-      interfaces['charlie'].client
-    );
-    await sleep(5000);
+      await waitForTx(
+        interfaces['charlie'].contract.write.transfer([addresses['alice'], amount]),
+        interfaces['charlie'].client
+      );
+      logger.info('    Finished Charlie -> Alice\n')
+      await sleep(5000);
+    } catch (error) {
+      logger.error('Error in transaction loop:', error);
+      logger.info('Continuing in 10 seconds.\n');
+      await sleep(10000);
+    }
   }
 }
 
-main();
+main().catch((error) => {
+  logger.error('Fatal error:', error);
+  process.exit(1);
+});
