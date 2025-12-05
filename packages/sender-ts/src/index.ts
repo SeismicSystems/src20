@@ -29,24 +29,27 @@ async function main() {
     Object.entries(accounts).map(([name, account]) => [name, account.address])
   );
 
-  console.log('Sending transactions on network:', chain.name);
+  console.log('Running on on network:', chain.name);
 
   // Pay a random amount, cycle from Alice -> Bob -> Charlie -> Alice -> ...
   while (true) {
     const amount = BigInt(Math.floor(Math.random() * (Number(1e18) - 1) + 1));
 
+    console.log('Sending Alice -> Bob:', amount);
     await waitForTx(
       interfaces['alice'].contract.write.transfer([addresses['bob'], amount]),
       interfaces['alice'].client
     );
     await sleep(5000);
 
+    console.log('Sending Bob -> Charlie:', amount);
     await waitForTx(
       interfaces['bob'].contract.write.transfer([addresses['charlie'], amount]),
       interfaces['bob'].client
     );
     await sleep(5000);
 
+    console.log('Sending Charlie -> Alice:', amount);
     await waitForTx(
       interfaces['charlie'].contract.write.transfer([addresses['alice'], amount]),
       interfaces['charlie'].client

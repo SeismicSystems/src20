@@ -1,6 +1,6 @@
 import { createSeismicDevnet, type ShieldedWalletClient } from 'seismic-viem';
 
-import { defineChain, http, type Chain } from 'viem';
+import { http, type Chain } from 'viem';
 import type { Account } from 'viem/accounts';
 import { createShieldedWalletClient, getShieldedContract } from 'seismic-viem';
 
@@ -26,8 +26,13 @@ export async function createInterface(chain: Chain, account: Account) {
 }
 
 export async function waitForTx(txPromise: Promise<`0x${string}`>, client: ShieldedWalletClient) {
-  const hash = await txPromise;
-  return await client.waitForTransactionReceipt({ hash });
+  try {
+    const hash = await txPromise;
+    return await client.waitForTransactionReceipt({ hash });
+  } catch (error) {
+    console.error('Error while waiting for transaction receipt:', error);
+    throw error;
+  }
 }
 
 export async function sleep(ms: number) {
