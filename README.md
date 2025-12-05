@@ -1,7 +1,7 @@
 # SRC20
 An ERC20 variant with private balances and transfer amounts.
 
-> Note: We're adding SRC20 to Viem mid Dec 2026, so the Typescript clients will be considerably simpler.
+> Note: We're adding SRC20 to Viem mid Dec 2025, so the Typescript clients will be considerably simpler.
 
 ## Directory Overview
 
