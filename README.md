@@ -1,6 +1,8 @@
 # SRC20
 An ERC20 variant with private balances and transfer amounts.
 
+> Note: We're adding SRC20 to Viem mid Dec 2026, so the Typescript clients will be considerably simpler.
+
 ## Directory Overview
 
 ``` bash
@@ -11,10 +13,10 @@ packages/
 └── sender-ts/      # Sends transfers in Typescript
 ```
 
-## Environment Variables
-All four packages read from a `.env` file in `packages/contracts/`.
+## Prerequisites 
+You need our version of `foundry` (`sfoundry`) to run `contracts/`, `listener-ts`, and `sender-ts`. See [here](https://docs.seismic.systems/getting-started/publish-your-docs) for the installation command.
 
-See `packages/contracts/.env.example` for an example file. 
+In addition, all four packages read from a `.env` file in `packages/contracts/`. See `packages/contracts/.env.example` for an example file. 
 
 ## Contract Deployment
 
