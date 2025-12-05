@@ -35,6 +35,7 @@ The following command continuously sends SRC20 tokens (the latest deployment) be
 
 ``` bash
 cd packages/sender-ts
+bun install
 bun dev
 ```
 
@@ -44,6 +45,7 @@ The following command listens for transfers on the latest deployment of the SRC2
 
 ``` bash
 cd packages/listener-ts
+bun install
 bun dev
 ```
 
