@@ -51,3 +51,8 @@ To do the same with a Go client, run the following.
 cd packages/listener-go
 go run ./
 ```
+
+Here's the expected output:
+
+![listening-output](assets/listening-output.png)
+
