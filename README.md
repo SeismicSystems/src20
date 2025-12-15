@@ -69,7 +69,7 @@ bun dev -- --intelligence
 ```
 
 - Requires `INTELLIGENCE_AES_KEY` in `.env`
-- Decrypts all transfer/approval amounts across all users
+- Decrypts all transfer amounts across all users. Only decrypts transfer amounts, not approval amounts as in recipient mode.
 
 ### Daemon Mode
 
