@@ -10,3 +10,7 @@ export function requireEnv(key: string): string {
     }
     return value;
 }
+
+export function optionalEnv(key: string): string | undefined {
+    return process.env[key];
+}

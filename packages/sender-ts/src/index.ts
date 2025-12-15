@@ -36,6 +36,7 @@ async function main() {
   logger.info(`Running on on network: ${chain.name}\n`);
 
   // Pay a random amount, cycle from Alice -> Bob -> Charlie -> Alice -> ...
+  // Also randomly insert approvals between users
   while (true) {
     try {
       const amount = BigInt(Math.floor(Math.random() * (Number(1e2) - 1) + 1));
@@ -48,6 +49,18 @@ async function main() {
       logger.info("    Finished Alice -> Bob");
       await sleep(5000);
 
+      // Random approval: Alice approves Charlie
+      if (Math.random() > 0.5) {
+        const approvalAmount = BigInt(Math.floor(Math.random() * (Number(1e3) - 1) + 1));
+        logger.info(`    [Approval] Alice approving Charlie for ${approvalAmount}`);
+        await waitForTx(
+          interfaces["alice"].contract.write.approve([addresses["charlie"], approvalAmount]),
+          interfaces["alice"].client
+        );
+        logger.info("    Finished Alice approves Charlie");
+        await sleep(5000);
+      }
+
       await waitForTx(
         interfaces["bob"].contract.write.transfer([
           addresses["charlie"],
@@ -58,6 +71,18 @@ async function main() {
       logger.info("    Finished Bob -> Charlie");
       await sleep(5000);
 
+      // Random approval: Bob approves Alice
+      if (Math.random() > 0.5) {
+        const approvalAmount = BigInt(Math.floor(Math.random() * (Number(1e3) - 1) + 1));
+        logger.info(`    [Approval] Bob approving Alice for ${approvalAmount}`);
+        await waitForTx(
+          interfaces["bob"].contract.write.approve([addresses["alice"], approvalAmount]),
+          interfaces["bob"].client
+        );
+        logger.info("    Finished Bob approves Alice");
+        await sleep(5000);
+      }
+
       await waitForTx(
         interfaces["charlie"].contract.write.transfer([
           addresses["alice"],
@@ -67,6 +92,18 @@ async function main() {
       );
       logger.info("    Finished Charlie -> Alice\n");
       await sleep(5000);
+
+      // Random approval: Charlie approves Bob
+      if (Math.random() > 0.5) {
+        const approvalAmount = BigInt(Math.floor(Math.random() * (Number(1e3) - 1) + 1));
+        logger.info(`    [Approval] Charlie approving Bob for ${approvalAmount}`);
+        await waitForTx(
+          interfaces["charlie"].contract.write.approve([addresses["bob"], approvalAmount]),
+          interfaces["charlie"].client
+        );
+        logger.info("    Finished Charlie approves Bob");
+        await sleep(5000);
+      }
     } catch (error) {
       logger.error("Error in transaction loop:", error);
       logger.info("Continuing in 10 seconds.\n");

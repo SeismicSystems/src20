@@ -7,6 +7,12 @@ interface IIntelligence {
     function encryptToProviders(bytes memory _plaintext) external returns (bytes32[] memory, bytes[] memory);
 }
 
+interface IDirectory {
+    function checkHasKey(address _addr) external view returns (bool);
+    function keyHash(address to) external view returns (bytes32);
+    function encrypt(address to, bytes memory _plaintext) external returns (bytes memory);
+}
+
 /// @notice Modern ERC20 + EIP-2612 implementation with confidential balances and transfers.
 /// @author Modified from Solmate (https://github.com/transmissions11/solmate/blob/main/src/tokens/ERC20.sol)
 /// @author Modified from Uniswap (https://github.com/Uniswap/uniswap-v2-core/blob/master/contracts/UniswapV2ERC20.sol)
@@ -48,6 +54,11 @@ abstract contract SRC20 {
         address(0x1000000000000000000000000000000000000005);
     IIntelligence public constant intelligence =
         IIntelligence(INTELLIGENCE_ADDRESS);
+
+    address public constant DIRECTORY_ADDRESS =
+        address(0x1000000000000000000000000000000000000004);
+    IDirectory public constant directory =
+        IDirectory(DIRECTORY_ADDRESS);
 
     suint256 internal supply;
 
@@ -216,10 +227,21 @@ abstract contract SRC20 {
         address to,
         suint256 amount
     ) internal {
+        // Emit to intelligence providers
         (bytes32[] memory hashes, bytes[] memory encryptedData) = intelligence
             .encryptToProviders(abi.encodePacked(amount));
         for (uint256 i = 0; i < encryptedData.length; i++) {
             emit Transfer(from, to, hashes[i], encryptedData[i]);
+        }
+
+        // Emit to recipient if they have a registered key
+        if (directory.checkHasKey(to)) {
+            bytes32 recipientKeyHash = directory.keyHash(to);
+            bytes memory recipientEncrypted = directory.encrypt(to, abi.encodePacked(amount));
+            emit Transfer(from, to, recipientKeyHash, recipientEncrypted);
+        } else {
+            // Emit with zero hash and empty data if recipient has no key
+            emit Transfer(from, to, bytes32(0), bytes(""));
         }
     }
 
@@ -228,10 +250,21 @@ abstract contract SRC20 {
         address spender,
         suint256 amount
     ) internal {
+        // Emit to intelligence providers
         (bytes32[] memory hashes, bytes[] memory encryptedData) = intelligence
             .encryptToProviders(abi.encodePacked(amount));
         for (uint256 i = 0; i < encryptedData.length; i++) {
             emit Approval(owner, spender, hashes[i], encryptedData[i]);
+        }
+
+        // Emit to spender if they have a registered key
+        if (directory.checkHasKey(spender)) {
+            bytes32 spenderKeyHash = directory.keyHash(spender);
+            bytes memory spenderEncrypted = directory.encrypt(spender, abi.encodePacked(amount));
+            emit Approval(owner, spender, spenderKeyHash, spenderEncrypted);
+        } else {
+            // Emit with zero hash and empty data if spender has no key
+            emit Approval(owner, spender, bytes32(0), bytes(""));
         }
     }
 
