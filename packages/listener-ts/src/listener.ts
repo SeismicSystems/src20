@@ -7,6 +7,8 @@ import DeployOut from "../../contracts/out/deploy.json";
 
 export const NONCE_LENGTH = 24; // 12 bytes in hex string
 
+const ZERO_KEY_HASH = "0x0000000000000000000000000000000000000000000000000000000000000000" as `0x${string}`;
+
 export type ListenerMode = "intelligence" | "recipient";
 
 export async function attachEventListener(
@@ -52,11 +54,14 @@ export async function attachEventListener(
 
 export async function attachRecipientListener(
   client: ShieldedWalletClient,
-  aesKey: Hex,
+  aesKey: Hex | null,
   recipientAddress: Address
 ) {
-  const keyHash = keccak256(aesKey) as `0x${string}`;
-  const aesGcmCrypto = new AesGcmCrypto(aesKey);
+  const keyHash = aesKey  
+  ? keccak256(aesKey) as `0x${string}` // AES key hash if recipient has a key
+  : ZERO_KEY_HASH; // Zero key hash if recipient has no key
+
+const aesGcmCrypto = aesKey ? new AesGcmCrypto(aesKey) : null;
 
   const transferEvent = SRC20Abi.find(
     (item: any) => item.type === "event" && item.name === "Transfer"
@@ -113,17 +118,14 @@ function parseEncryptedData(encryptedData: Hex): {
 }
 
 async function handleEvent(
-  aesGcmCrypto: AesGcmCrypto,
+  aesGcmCrypto: AesGcmCrypto | null,
   log: any,
   callback: (data: any) => void
 ) {
   const { encryptedAmount, encryptKeyHash } = log.args;
 
-  // Handle zero key hash (recipient has no registered key)
-  if (
-    encryptKeyHash ===
-    "0x0000000000000000000000000000000000000000000000000000000000000000"
-  ) {
+  // Handle zero key hash OR no crypto instance (recipient has no registered key)
+  if (encryptKeyHash === ZERO_KEY_HASH || !aesGcmCrypto) {
     callback({ ...log.args, amount: 0n, noKey: true });
     return;
   }

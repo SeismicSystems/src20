@@ -32,10 +32,12 @@ async function main() {
 
   if (values.recipient) {
     // Recipient mode: listen using your own registered key
-    const aesKey = optionalEnv("RECIPIENT_AES_KEY") as Hex | undefined;
+    const aesKey = optionalEnv("RECIPIENT_AES_KEY") as Hex | undefined; // AES key corresponding to the wallet address for ALICE
 
     // Check if user is registered
-    const isRegistered = await checkRegistration(client, account.address);
+    let isRegistered = await checkRegistration(client, account.address);
+
+    console.log("isRegistered", isRegistered);
 
     if (!isRegistered) {
       console.warn("⚠️  WARNING: You are not registered as a recipient in the Directory.");
@@ -50,6 +52,7 @@ async function main() {
           console.log(`✅ Registration tx submitted: ${txHash}`);
           await client.waitForTransactionReceipt({ hash: txHash });
           console.log("✅ Key registered successfully!\n");
+          isRegistered = true; // Update after successful registration
         } else {
           console.log("Continuing without registration. You won't receive recipient-specific events.\n");
         }
@@ -64,7 +67,11 @@ async function main() {
     if (aesKey) {
       const keyHash = computeKeyHash(aesKey);
       console.log(`Listening for events encrypted to your key: ${keyHash}\n`);
-      attachRecipientListener(client, aesKey, account.address);
+      if (isRegistered) {
+        attachRecipientListener(client, aesKey, account.address);
+      } else {
+        attachRecipientListener(client, null, account.address);
+      }
     } else {
       console.error("RECIPIENT_AES_KEY is required in --recipient mode");
       process.exit(1);
