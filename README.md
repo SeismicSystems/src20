@@ -16,7 +16,9 @@ packages/
 ## Prerequisites 
 You need our version of `foundry` (`sfoundry`) to run `contracts/`, `listener-ts`, and `sender-ts`. See [here](https://docs.seismic.systems/getting-started/publish-your-docs) for the installation command.
 
-In addition, all four packages read from a `.env` file in `packages/contracts/`. See `packages/contracts/.env.example` for an example file. 
+All packages read from a `.env` file in `packages/contracts/`. See [`packages/contracts/.env.example`](packages/contracts/.env.example) for the required variables.
+
+**Note on `RECIPIENT_AES_KEY`:** The sender cycles transfers between Alice, Bob, and Charlie. The listener uses `ALICE_PRIVATE_KEY`, so `RECIPIENT_AES_KEY` must be Alice's registered AES key. If the key isn't registered, you'll see `<recipient has no key>` instead of decrypted amounts.
 
 ## Contract Deployment
 
@@ -41,15 +43,45 @@ bun dev
 
 ## Listening for Events
 
-The following command listens for transfers on the latest deployment of the SRC20 contract. Does so via a Typescript client.
+The TypeScript listener supports two modes:
 
-``` bash
+### Recipient Mode
+
+Listen for events where you are the recipient (transfers TO you, approvals FOR you as spender).
+
+```bash
 cd packages/listener-ts
 bun install
-bun dev
+bun dev -- --recipient
 ```
 
-To do the same with a Go client, run the following.
+- Checks if your address is registered in the Directory
+- If not registered, prompts to register your `RECIPIENT_AES_KEY`
+- Once registered, decrypts transfer amounts sent to you and approval amounts approved for you
+- If `RECIPIENT_AES_KEY` is not set, the listener will exit with an error
+
+### Intelligence Provider Mode
+
+Listen for all events encrypted to the intelligence provider's key.
+
+```bash
+bun dev -- --intelligence
+```
+
+- Requires `INTELLIGENCE_AES_KEY` in `.env`
+- Decrypts all transfer/approval amounts across all users
+
+### Daemon Mode
+
+For running without interactive prompts (e.g., with supervisor):
+
+```bash
+bun dev -- --recipient --no-prompt
+```
+
+### Go Client
+
+To listen with a Go client:
 
 ``` bash
 cd packages/listener-go
