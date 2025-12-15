@@ -1,0 +1,16 @@
+{
+  "name": "src20",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "packages/listener-ts",
+    "packages/sender-ts"
+  ],
+  "scripts": {
+    "sender": "bun --cwd packages/sender-ts run dev",
+    "listener:recipient": "bun --cwd packages/listener-ts run dev -- --recipient",
+    "listener:intelligence": "bun --cwd packages/listener-ts run dev -- --intelligence",
+    "install:all": "bun install --cwd packages/sender-ts && bun install --cwd packages/listener-ts"
+  }
+}
+
