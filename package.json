@@ -7,10 +7,10 @@
     "packages/sender-ts"
   ],
   "scripts": {
-    "sender": "bun --cwd packages/sender-ts run dev",
-    "listener:recipient": "bun --cwd packages/listener-ts run dev -- --recipient",
-    "listener:intelligence": "bun --cwd packages/listener-ts run dev -- --intelligence",
-    "install:all": "bun install --cwd packages/sender-ts && bun install --cwd packages/listener-ts"
+    "sender": "bun run --cwd packages/sender-ts dev",
+    "listener:recipient": "bun run --cwd packages/listener-ts dev -- --recipient",
+    "listener:intelligence": "bun run --cwd packages/listener-ts dev -- --intelligence",
+    "install:all": "bun install --cwd packages/sender-ts && bun install --cwd packages/listener-ts",
+    "format:all": "bun run --cwd packages/sender-ts format && bun run --cwd packages/listener-ts format"
   }
 }
-

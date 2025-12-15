@@ -29,19 +29,19 @@ export async function createInterface(chain: Chain, account: Account) {
 function withTimeout<T>(
   promise: Promise<T>,
   timeoutMs: number,
-  errorMessage: string
+  errorMessage: string,
 ): Promise<T> {
   return Promise.race([
     promise,
     new Promise<T>((_, reject) =>
-      setTimeout(() => reject(new Error(errorMessage)), timeoutMs)
+      setTimeout(() => reject(new Error(errorMessage)), timeoutMs),
     ),
   ]);
 }
 
 export async function waitForTx(
   txPromise: Promise<`0x${string}`>,
-  client: ShieldedWalletClient
+  client: ShieldedWalletClient,
 ) {
   const TX_HASH_TIMEOUT = 60000;
   const RECEIPT_TIMEOUT = 300000;
@@ -53,7 +53,7 @@ export async function waitForTx(
       const hash = await withTimeout(
         txPromise,
         TX_HASH_TIMEOUT,
-        `Transaction hash timeout after ${TX_HASH_TIMEOUT}ms`
+        `Transaction hash timeout after ${TX_HASH_TIMEOUT}ms`,
       );
 
       const receipt = await withTimeout(
@@ -62,7 +62,7 @@ export async function waitForTx(
           timeout: RECEIPT_TIMEOUT,
         }),
         RECEIPT_TIMEOUT + 10000,
-        `Transaction receipt timeout after ${RECEIPT_TIMEOUT}ms for hash ${hash}`
+        `Transaction receipt timeout after ${RECEIPT_TIMEOUT}ms for hash ${hash}`,
       );
 
       return receipt;
@@ -73,7 +73,7 @@ export async function waitForTx(
       }
       logger.error(
         `Attempt ${attempt} failed, retrying in ${RETRY_DELAY}ms:`,
-        error
+        error,
       );
       await sleep(RETRY_DELAY);
     }

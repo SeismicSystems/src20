@@ -20,6 +20,7 @@ async function main() {
     options: {
       recipient: { type: "boolean", default: false },
       intelligence: { type: "boolean", default: false },
+      "no-prompt": { type: "boolean", default: false },
     },
   });
 
@@ -32,41 +33,49 @@ async function main() {
 
   if (values.recipient) {
     // Recipient mode: listen using your own registered key
-    const aesKey = optionalEnv("RECIPIENT_AES_KEY") as Hex | undefined; // AES key corresponding to the wallet address for ALICE
+    const aesKey = optionalEnv("RECIPIENT_AES_KEY") as Hex | undefined;
 
     // Check if user is registered
     let isRegistered = await checkRegistration(client, account.address);
 
-    console.log("isRegistered", isRegistered);
-
     if (!isRegistered) {
-      console.warn("⚠️  WARNING: You are not registered as a recipient in the Directory.");
-      
-      if (aesKey) {
+      console.warn(
+        "WARNING: You are not registered as a recipient in the Directory.",
+      );
+
+      if (aesKey && !values["no-prompt"]) {
         const shouldRegister = await promptYesNo(
-          "Would you like to register your key now? (y/n): "
+          "Would you like to register your key now? (y/n): ",
         );
         if (shouldRegister) {
           console.log("Registering your key...");
           const txHash = await registerKey(client, aesKey);
-          console.log(`✅ Registration tx submitted: ${txHash}`);
+          console.log(`Registration tx submitted: ${txHash}`);
           await client.waitForTransactionReceipt({ hash: txHash });
-          console.log("✅ Key registered successfully!\n");
-          isRegistered = true; // Update after successful registration
+          console.log("Key registered successfully!\n");
+          isRegistered = true;
         } else {
-          console.log("Continuing without registration. You won't receive recipient-specific events.\n");
+          console.log(
+            "Continuing without registration. You won't receive recipient-specific events.\n",
+          );
         }
+      } else if (values["no-prompt"]) {
+        console.log(
+          "Skipping registration prompt (--no-prompt). Listening for unregistered events.\n",
+        );
       } else {
         console.log("Set RECIPIENT_AES_KEY in .env to enable registration.\n");
       }
     } else {
-      console.log("✅ You are registered in the Directory.\n");
+      console.log("You are registered in the Directory.\n");
     }
 
     // Get the key hash for listening
     if (aesKey) {
       const keyHash = computeKeyHash(aesKey);
-      console.log(`Listening for events encrypted to your key: ${keyHash}\n`);
+      console.log(
+        `Listening for events encrypted to your key whose hash is: ${keyHash}\n`,
+      );
       if (isRegistered) {
         attachRecipientListener(client, aesKey, account.address);
       } else {
@@ -84,8 +93,15 @@ async function main() {
   } else {
     console.error("Please specify --recipient or --intelligence flag");
     console.log("\nUsage:");
-    console.log("  bun run dev -- --recipient      Listen as a recipient");
-    console.log("  bun run dev -- --intelligence   Listen as an intelligence provider");
+    console.log(
+      "  bun run dev -- --recipient             Listen as a recipient",
+    );
+    console.log(
+      "  bun run dev -- --recipient --no-prompt Listen as a recipient (daemon mode)",
+    );
+    console.log(
+      "  bun run dev -- --intelligence          Listen as an intelligence provider",
+    );
     process.exit(1);
   }
 
