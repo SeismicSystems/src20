@@ -1,5 +1,5 @@
 import { keccak256 } from "ethers";
-import { type AbiEvent, type Hex } from "viem";
+import { type AbiEvent, type Hex, type Address } from "viem";
 import { AesGcmCrypto, type ShieldedWalletClient } from "seismic-viem";
 
 import { SRC20Abi } from "./util/abi";
@@ -7,9 +7,12 @@ import DeployOut from "../../contracts/out/deploy.json";
 
 export const NONCE_LENGTH = 24; // 12 bytes in hex string
 
+export type ListenerMode = "intelligence" | "recipient";
+
 export async function attachEventListener(
   client: ShieldedWalletClient,
-  aesKey: Hex
+  aesKey: Hex,
+  mode: ListenerMode = "intelligence"
 ) {
   const keyHash = keccak256(aesKey) as `0x${string}`;
   const aesGcmCrypto = new AesGcmCrypto(aesKey);
@@ -25,7 +28,7 @@ export async function attachEventListener(
     },
     onLogs: (logs: any[]) => {
       logs.forEach(async (log) => {
-        handleEvent(aesGcmCrypto, log, logTransfer);
+        handleEvent(aesGcmCrypto, log, (data) => logTransfer(data, mode));
       });
     },
   });
@@ -41,7 +44,54 @@ export async function attachEventListener(
     },
     onLogs: (logs: any[]) => {
       logs.forEach(async (log) => {
-        handleEvent(aesGcmCrypto, log, logApproval);
+        handleEvent(aesGcmCrypto, log, (data) => logApproval(data, mode));
+      });
+    },
+  });
+}
+
+export async function attachRecipientListener(
+  client: ShieldedWalletClient,
+  aesKey: Hex,
+  recipientAddress: Address
+) {
+  const keyHash = keccak256(aesKey) as `0x${string}`;
+  const aesGcmCrypto = new AesGcmCrypto(aesKey);
+
+  const transferEvent = SRC20Abi.find(
+    (item: any) => item.type === "event" && item.name === "Transfer"
+  ) as AbiEvent;
+
+  // Listen for transfers TO this recipient
+  client.watchEvent({
+    address: DeployOut.MockSRC20 as `0x${string}`,
+    event: transferEvent,
+    args: {
+      to: recipientAddress,
+      encryptKeyHash: keyHash,
+    },
+    onLogs: (logs: any[]) => {
+      logs.forEach(async (log) => {
+        handleEvent(aesGcmCrypto, log, (data) => logTransfer(data, "recipient"));
+      });
+    },
+  });
+
+  const approvalEvent = SRC20Abi.find(
+    (item: any) => item.type === "event" && item.name === "Approval"
+  ) as AbiEvent;
+
+  // Listen for approvals TO this recipient (as spender)
+  client.watchEvent({
+    address: DeployOut.MockSRC20 as `0x${string}`,
+    event: approvalEvent,
+    args: {
+      spender: recipientAddress,
+      encryptKeyHash: keyHash,
+    },
+    onLogs: (logs: any[]) => {
+      logs.forEach(async (log) => {
+        handleEvent(aesGcmCrypto, log, (data) => logApproval(data, "recipient"));
       });
     },
   });
@@ -51,6 +101,11 @@ function parseEncryptedData(encryptedData: Hex): {
   ciphertext: Hex;
   nonce: Hex;
 } {
+  // Handle empty/zero encrypted data
+  if (!encryptedData || encryptedData === "0x" || encryptedData.length <= 2) {
+    throw new Error("Empty encrypted data - recipient has no key");
+  }
+
   const nonce = `0x${encryptedData.slice(-NONCE_LENGTH)}` as Hex;
   const ciphertext = encryptedData.slice(0, -NONCE_LENGTH) as Hex;
 
@@ -62,26 +117,56 @@ async function handleEvent(
   log: any,
   callback: (data: any) => void
 ) {
-  const { encryptedAmount } = log.args;
-  const { ciphertext, nonce } = parseEncryptedData(encryptedAmount);
-  const amountHex = BigInt(await aesGcmCrypto.decrypt(ciphertext, nonce));
-  callback({ ...log.args, amount: amountHex });
+  const { encryptedAmount, encryptKeyHash } = log.args;
+
+  // Handle zero key hash (recipient has no registered key)
+  if (
+    encryptKeyHash ===
+    "0x0000000000000000000000000000000000000000000000000000000000000000"
+  ) {
+    callback({ ...log.args, amount: 0n, noKey: true });
+    return;
+  }
+
+  try {
+    const { ciphertext, nonce } = parseEncryptedData(encryptedAmount);
+    const amountHex = BigInt(await aesGcmCrypto.decrypt(ciphertext, nonce));
+    callback({ ...log.args, amount: amountHex });
+  } catch (error) {
+    callback({ ...log.args, amount: null, decryptionFailed: true });
+  }
 }
 
-function logTransfer(data: any) {
-  const { from, to, amount } = data;
+function logTransfer(data: any, mode: ListenerMode) {
+  const { from, to, amount, noKey, decryptionFailed } = data;
 
-  console.log("Transfer(address from, address to, uint256 amount)\n");
+  const perspective = mode === "intelligence" ? "[Intelligence Provider]" : "[Recipient]";
+  console.log(`${perspective} Transfer(address from, address to, uint256 amount)\n`);
   console.log("    from:", from);
   console.log("    to:", to);
-  console.log("    amount:", amount, "\n");
+
+  if (noKey) {
+    console.log("    amount: <recipient has no key>", "\n");
+  } else if (decryptionFailed) {
+    console.log("    amount: <decryption failed>", "\n");
+  } else {
+    console.log("    amount:", amount, "\n");
+  }
 }
 
-function logApproval(data: any) {
-  const { owner, spender, amount } = data;
+function logApproval(data: any, mode: ListenerMode) {
+  const { owner, spender, amount, noKey, decryptionFailed } = data;
 
-  console.log("Approval(address owner, address spender, uint256 amount)\n");
+  const perspective = mode === "intelligence" ? "[Intelligence Provider]" : "[Recipient]";
+  console.log(`${perspective} Approval(address owner, address spender, uint256 amount)\n`);
   console.log("    owner:", owner);
   console.log("    spender:", spender);
-  console.log("    amount:", amount, "\n");
+
+  if (noKey) {
+    console.log("    amount: <spender has no key>", "\n");
+  } else if (decryptionFailed) {
+    console.log("    amount: <decryption failed>", "\n");
+  } else {
+    console.log("    amount:", amount, "\n");
+  }
 }
