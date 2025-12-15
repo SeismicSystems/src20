@@ -22,18 +22,10 @@ abstract contract SRC20 {
                                  EVENTS
     //////////////////////////////////////////////////////////////*/
 
-    event Transfer(
-        address indexed from,
-        address indexed to,
-        bytes32 indexed encryptKeyHash,
-        bytes encryptedAmount
-    );
+    event Transfer(address indexed from, address indexed to, bytes32 indexed encryptKeyHash, bytes encryptedAmount);
 
     event Approval(
-        address indexed owner,
-        address indexed spender,
-        bytes32 indexed encryptKeyHash,
-        bytes encryptedAmount
+        address indexed owner, address indexed spender, bytes32 indexed encryptKeyHash, bytes encryptedAmount
     );
 
     /*//////////////////////////////////////////////////////////////
@@ -50,15 +42,11 @@ abstract contract SRC20 {
                               SRC20 STORAGE
     //////////////////////////////////////////////////////////////*/
 
-    address public constant INTELLIGENCE_ADDRESS =
-        address(0x1000000000000000000000000000000000000005);
-    IIntelligence public constant intelligence =
-        IIntelligence(INTELLIGENCE_ADDRESS);
+    address public constant INTELLIGENCE_ADDRESS = address(0x1000000000000000000000000000000000000005);
+    IIntelligence public constant intelligence = IIntelligence(INTELLIGENCE_ADDRESS);
 
-    address public constant DIRECTORY_ADDRESS =
-        address(0x1000000000000000000000000000000000000004);
-    IDirectory public constant directory =
-        IDirectory(DIRECTORY_ADDRESS);
+    address public constant DIRECTORY_ADDRESS = address(0x1000000000000000000000000000000000000004);
+    IDirectory public constant directory = IDirectory(DIRECTORY_ADDRESS);
 
     suint256 internal supply;
 
@@ -93,10 +81,7 @@ abstract contract SRC20 {
                                SRC20 LOGIC
     //////////////////////////////////////////////////////////////*/
 
-    function approve(
-        address spender,
-        suint256 amount
-    ) public virtual returns (bool) {
+    function approve(address spender, suint256 amount) public virtual returns (bool) {
         allowances[msg.sender][spender] = amount;
 
         emitApprovalEncrypted(msg.sender, spender, amount);
@@ -104,10 +89,7 @@ abstract contract SRC20 {
         return true;
     }
 
-    function transfer(
-        address to,
-        suint256 amount
-    ) public virtual returns (bool) {
+    function transfer(address to, suint256 amount) public virtual returns (bool) {
         balances[msg.sender] -= amount;
 
         // Cannot overflow because the sum of all user
@@ -120,11 +102,7 @@ abstract contract SRC20 {
         return true;
     }
 
-    function transferFrom(
-        address from,
-        address to,
-        suint256 amount
-    ) public virtual returns (bool) {
+    function transferFrom(address from, address to, suint256 amount) public virtual returns (bool) {
         suint256 allowed = allowances[from][msg.sender]; // Saves gas for limited approvals.
 
         if (allowed != type(suint256).max) {
@@ -147,15 +125,10 @@ abstract contract SRC20 {
                              EIP-2612 LOGIC
     //////////////////////////////////////////////////////////////*/
 
-    function permit(
-        address owner,
-        address spender,
-        suint256 value,
-        uint256 deadline,
-        uint8 v,
-        bytes32 r,
-        bytes32 s
-    ) public virtual {
+    function permit(address owner, address spender, suint256 value, uint256 deadline, uint8 v, bytes32 r, bytes32 s)
+        public
+        virtual
+    {
         require(deadline >= block.timestamp, "PERMIT_DEADLINE_EXPIRED");
 
         // Unchecked because the only math done is incrementing
@@ -185,10 +158,7 @@ abstract contract SRC20 {
                 s
             );
 
-            require(
-                recoveredAddress != address(0) && recoveredAddress == owner,
-                "INVALID_SIGNER"
-            );
+            require(recoveredAddress != address(0) && recoveredAddress == owner, "INVALID_SIGNER");
 
             allowances[recoveredAddress][spender] = value;
         }
@@ -197,39 +167,29 @@ abstract contract SRC20 {
     }
 
     function DOMAIN_SEPARATOR() public view virtual returns (bytes32) {
-        return
-            block.chainid == INITIAL_CHAIN_ID
-                ? INITIAL_DOMAIN_SEPARATOR
-                : computeDomainSeparator();
+        return block.chainid == INITIAL_CHAIN_ID ? INITIAL_DOMAIN_SEPARATOR : computeDomainSeparator();
     }
 
     function computeDomainSeparator() internal view virtual returns (bytes32) {
-        return
-            keccak256(
-                abi.encode(
-                    keccak256(
-                        "EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"
-                    ),
-                    keccak256(bytes(name)),
-                    keccak256("1"),
-                    block.chainid,
-                    address(this)
-                )
-            );
+        return keccak256(
+            abi.encode(
+                keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"),
+                keccak256(bytes(name)),
+                keccak256("1"),
+                block.chainid,
+                address(this)
+            )
+        );
     }
 
     /*//////////////////////////////////////////////////////////////
                             EMIT EVENTS
     //////////////////////////////////////////////////////////////*/
 
-    function emitTransferEncrypted(
-        address from,
-        address to,
-        suint256 amount
-    ) internal {
+    function emitTransferEncrypted(address from, address to, suint256 amount) internal {
         // Emit to intelligence providers
-        (bytes32[] memory hashes, bytes[] memory encryptedData) = intelligence
-            .encryptToProviders(abi.encodePacked(amount));
+        (bytes32[] memory hashes, bytes[] memory encryptedData) =
+            intelligence.encryptToProviders(abi.encodePacked(amount));
         for (uint256 i = 0; i < encryptedData.length; i++) {
             emit Transfer(from, to, hashes[i], encryptedData[i]);
         }
@@ -245,14 +205,10 @@ abstract contract SRC20 {
         }
     }
 
-    function emitApprovalEncrypted(
-        address owner,
-        address spender,
-        suint256 amount
-    ) internal {
+    function emitApprovalEncrypted(address owner, address spender, suint256 amount) internal {
         // Emit to intelligence providers
-        (bytes32[] memory hashes, bytes[] memory encryptedData) = intelligence
-            .encryptToProviders(abi.encodePacked(amount));
+        (bytes32[] memory hashes, bytes[] memory encryptedData) =
+            intelligence.encryptToProviders(abi.encodePacked(amount));
         for (uint256 i = 0; i < encryptedData.length; i++) {
             emit Approval(owner, spender, hashes[i], encryptedData[i]);
         }
