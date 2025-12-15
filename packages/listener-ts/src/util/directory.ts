@@ -2,9 +2,11 @@ import type { Abi, Address, Hex } from "viem";
 import { shieldedWriteContract, type ShieldedWalletClient } from "seismic-viem";
 import { keccak256 } from "ethers";
 
-export const DIRECTORY_ADDRESS = "0x1000000000000000000000000000000000000004" as Address;
+const DIRECTORY_ADDRESS =
+  "0x1000000000000000000000000000000000000004" as Address;
+const TX_TIMEOUT_MS = 30_000;
 
-export const DirectoryAbi = [
+const DirectoryAbi = [
   {
     inputs: [{ name: "_addr", type: "address" }],
     name: "checkHasKey",
@@ -35,9 +37,19 @@ export const DirectoryAbi = [
   },
 ] as const satisfies Abi;
 
+function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+  const timeout = new Promise<never>((_, reject) =>
+    setTimeout(
+      () => reject(new Error(`Transaction timed out after ${ms}ms`)),
+      ms,
+    ),
+  );
+  return Promise.race([promise, timeout]);
+}
+
 export async function checkRegistration(
   client: ShieldedWalletClient,
-  address: Address
+  address: Address,
 ): Promise<boolean> {
   const hasKey = await client.readContract({
     address: DIRECTORY_ADDRESS,
@@ -50,7 +62,7 @@ export async function checkRegistration(
 
 export async function getKeyHash(
   client: ShieldedWalletClient,
-  address: Address
+  address: Address,
 ): Promise<Hex> {
   const keyHash = await client.readContract({
     address: DIRECTORY_ADDRESS,
@@ -63,19 +75,19 @@ export async function getKeyHash(
 
 export async function registerKey(
   client: ShieldedWalletClient,
-  aesKey: Hex
+  aesKey: Hex,
 ): Promise<Hex> {
-  const hash = await shieldedWriteContract(client, {
+  const txPromise = shieldedWriteContract(client, {
     chain: client.chain,
     address: DIRECTORY_ADDRESS,
     abi: DirectoryAbi,
     functionName: "setKey",
     args: [BigInt(aesKey)],
   });
-  return hash;
+
+  return withTimeout(txPromise, TX_TIMEOUT_MS);
 }
 
 export function computeKeyHash(aesKey: Hex): Hex {
   return keccak256(aesKey) as Hex;
 }
-
