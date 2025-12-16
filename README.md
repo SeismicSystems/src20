@@ -232,19 +232,20 @@ The SRC20 listener uses the `encryptKeyHash` field in events to filter and decry
 3. **Decrypt amount**: The `encryptedAmount` is decrypted using your AES key via `AesGcmCrypto`
 
 ```
-┌─────────────────────────────────────────────────────────────────────┐
-│                       SRC20 Listener Flow                           │
-├─────────────────────────────────────────────────────────────────────┤
-│  1. AES_KEY (from .env) ──► keccak256() ──► keyHash                │
-│     • INTELLIGENCE_AES_KEY for intelligence mode                    │
-│     • RECIPIENT_AES_KEY for recipient mode                          │
-│                                                                     │
-│  2. watchEvent({ args: { encryptKeyHash: keyHash } })              │
-│     └─ Only receives events where encryptKeyHash matches           │
-│                                                                     │
-│  3. For each matching event:                                        │
-│     encryptedAmount ──► AesGcmCrypto.decrypt() ──► plaintext       │
-└─────────────────────────────────────────────────────────────────────┘
+┌───────────────────────────────────────────────────────────────────┐
+│                      SRC20 Listener Flow                          │
+├───────────────────────────────────────────────────────────────────┤
+│  1. AES_KEY (from .env) ──► keccak256() ──► keyHash               │
+│     • INTELLIGENCE_AES_KEY for intelligence mode                  │
+│     • RECIPIENT_AES_KEY for recipient mode                        │
+│                                                                   │
+│  2. watchEvent({ args: { encryptKeyHash: keyHash } })             │
+│     └─ Only receives events where encryptKeyHash matches          │
+│                                                                   │
+│  3. For each matching event:                                      │
+│     encryptedAmount ──► AesGcmCrypto.decrypt() ──► plaintext      │
+└───────────────────────────────────────────────────────────────────┘
+```
 
 ### Key Used by Mode
 
@@ -276,11 +277,9 @@ cd packages/listener-ts && bun dev:src20 -- --intelligence
 cd packages/listener-ts && bun dev:src20 -- --recipient
 ```
 
-- Requires `RECIPIENT_AES_KEY` in `.env` (must be Alice's key since sender uses Alice)
+- Requires `RECIPIENT_AES_KEY` in `.env` (this will be Alice's AES encryption/decryption key since listener uses Alice's private key to initialize the shielded wallet client)
 - Only decrypts transfers **TO** you and approvals **FOR** you as spender
-- Prompts to register your key in the Directory if not already registered
-
-**Note:** Since the sender cycles transfers between Alice, Bob, and Charlie using `ALICE_PRIVATE_KEY`, set `RECIPIENT_AES_KEY` to Alice's registered AES key to see decrypted amounts in recipient mode.
+- Prompts to register your key in the Directory if not already registered 
 
 ### Daemon Mode
 
