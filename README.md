@@ -121,9 +121,9 @@ The Directory contract maintains a mapping of addresses to their AES encryption 
 
 ```solidity
 interface IDirectory {
-    function checkHasKey(address _addr) external view returns (bool);
-    function keyHash(address to) external view returns (bytes32);
-    function encrypt(address to, bytes memory _plaintext) external returns (bytes memory);
+    function checkHasKey(address _addr) external view returns (bool); // checks if an address has a key registered
+    function keyHash(address to) external view returns (bytes32); // returns the hash for the key of an address
+    function encrypt(address to, bytes memory _plaintext) external returns (bytes memory); // encrypts the plaintext using the key corresponding to the `to` address
     function setKey(suint256 _key) external;  // Register your AES key
 }
 ```
@@ -136,10 +136,10 @@ The Intelligence contract manages intelligence providers who can decrypt all tra
 
 ```solidity
 interface IIntelligence {
-    function encryptToProviders(bytes memory _plaintext) external returns (bytes32[] memory, bytes[] memory);
-    function addProvider(address _provider) external;
-    function removeProvider(address _provider) external;
-    function numProviders() external view returns (uint256);
+    function encryptToProviders(bytes memory _plaintext) external returns (bytes32[] memory, bytes[] memory); // encrypts data to all providers registered in the Intelligence contract
+    function addProvider(address _provider) external; // adds a provider
+    function removeProvider(address _provider) external; // removes a provider
+    function numProviders() external view returns (uint256); // returns number of providers
 }
 ```
 
@@ -149,7 +149,7 @@ interface IIntelligence {
 
 ## Prerequisites
 
-You need our version of `foundry` (`sfoundry`) to run `contracts/`, `listener-ts`, and `sender-ts`. See [here](https://docs.seismic.systems/getting-started/publish-your-docs) for the installation command.
+You need our fork of the `foundry` development suite (`sfoundry`), specifically `sforge`, our tool to help build, test, deploy and debug Seismic smart contracts, to run `contracts/`, `listener-ts`, and `sender-ts`. See [here](https://docs.seismic.systems/getting-started/publish-your-docs) for the installation command.
 
 All packages read from a `.env` file in `packages/contracts/`. See [`packages/contracts/.env.example`](packages/contracts/.env.example) for the required variables.
 
