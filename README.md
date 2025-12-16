@@ -194,6 +194,8 @@ interface IIntelligence {
 
 You need our fork of the `foundry` development suite (`sfoundry`), specifically `sforge`, our tool to help build, test, deploy and debug Seismic smart contracts, to run `contracts/`, `listener-ts`, and `sender-ts`. See [here](https://docs.seismic.systems/getting-started/publish-your-docs) for the installation command.
 
+You then need to run `bun install:all` from the root to install all dependencies.
+
 All packages read from a `.env` file in `packages/contracts/`. See [`packages/contracts/.env.example`](packages/contracts/.env.example) for the required variables.
 
 ---
