@@ -7,7 +7,7 @@ import {
 } from "seismic-viem";
 
 import { SRC20Abi } from "./abi";
-import DeployOut from "../../../contracts/out/deploy.json";
+import DeployOut from "../../../../contracts/out/deploy.json";
 
 export const integrationChain = createSeismicDevnet({
   nodeHost: "lyron.seismicdev.net",
@@ -26,3 +26,4 @@ export async function createInterface(chain: Chain, account: Account) {
   });
   return { client, contract };
 }
+

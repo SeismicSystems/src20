@@ -1,5 +1,6 @@
 import type { Abi } from "viem";
 
+// SRC20 ABI - note the suint256 types (shielded/encrypted)
 export const SRC20Abi = [
   {
     type: "function",
@@ -20,7 +21,7 @@ export const SRC20Abi = [
     name: "approve",
     inputs: [
       { name: "spender", type: "address", internalType: "address" },
-      { name: "amount", type: "suint256", internalType: "suint256" },
+      { name: "amount", type: "suint256", internalType: "suint256" }, // SHIELDED type
     ],
     outputs: [{ name: "", type: "bool", internalType: "bool" }],
     stateMutability: "nonpayable",
@@ -89,7 +90,7 @@ export const SRC20Abi = [
     name: "transfer",
     inputs: [
       { name: "to", type: "address", internalType: "address" },
-      { name: "amount", type: "suint256", internalType: "suint256" },
+      { name: "amount", type: "suint256", internalType: "suint256" }, // SHIELDED type
     ],
     outputs: [{ name: "", type: "bool", internalType: "bool" }],
     stateMutability: "nonpayable",
@@ -103,6 +104,26 @@ export const SRC20Abi = [
       { name: "amount", type: "suint256", internalType: "suint256" },
     ],
     outputs: [{ name: "", type: "bool", internalType: "bool" }],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "mint",
+    inputs: [
+      { name: "to", type: "address", internalType: "address" },
+      { name: "value", type: "suint256", internalType: "suint256" }, // SHIELDED type
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "burn",
+    inputs: [
+      { name: "from", type: "address", internalType: "address" },
+      { name: "value", type: "suint256", internalType: "suint256" }, // SHIELDED type
+    ],
+    outputs: [],
     stateMutability: "nonpayable",
   },
   {
@@ -158,3 +179,4 @@ export const SRC20Abi = [
     anonymous: false,
   },
 ] as const satisfies Abi;
+

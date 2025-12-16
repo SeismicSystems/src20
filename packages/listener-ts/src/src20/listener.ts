@@ -3,7 +3,7 @@ import { type AbiEvent, type Hex, type Address } from "viem";
 import { AesGcmCrypto, type ShieldedWalletClient } from "seismic-viem";
 
 import { SRC20Abi } from "./util/abi";
-import DeployOut from "../../contracts/out/deploy.json";
+import DeployOut from "../../../contracts/out/deploy.json";
 
 export const NONCE_LENGTH = 24; // 12 bytes in hex string
 
@@ -149,8 +149,9 @@ function logTransfer(data: any, mode: ListenerMode) {
 
   const perspective =
     mode === "intelligence" ? "[Intelligence Provider]" : "[Recipient]";
+  console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
   console.log(
-    `${perspective} Transfer(address from, address to, uint256 amount)\n`,
+    `${perspective} [SRC20] Transfer - ENCRYPTED (decrypted with AES key)\n`,
   );
   console.log("    from:", from);
   console.log("    to:", to);
@@ -160,7 +161,7 @@ function logTransfer(data: any, mode: ListenerMode) {
   } else if (decryptionFailed) {
     console.log("    amount: <decryption failed>", "\n");
   } else {
-    console.log("    amount:", amount, "\n");
+    console.log("    amount:", amount, "(decrypted from encrypted bytes)\n");
   }
 }
 
@@ -169,8 +170,9 @@ function logApproval(data: any, mode: ListenerMode) {
 
   const perspective =
     mode === "intelligence" ? "[Intelligence Provider]" : "[Recipient]";
+  console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
   console.log(
-    `${perspective} Approval(address owner, address spender, uint256 amount)\n`,
+    `${perspective} [SRC20] Approval - ENCRYPTED (decrypted with AES key)\n`,
   );
   console.log("    owner:", owner);
   console.log("    spender:", spender);
@@ -180,6 +182,7 @@ function logApproval(data: any, mode: ListenerMode) {
   } else if (decryptionFailed) {
     console.log("    amount: <decryption failed>", "\n");
   } else {
-    console.log("    amount:", amount, "\n");
+    console.log("    amount:", amount, "(decrypted from encrypted bytes)\n");
   }
 }
+

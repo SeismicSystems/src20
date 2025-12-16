@@ -31,6 +31,11 @@ async function main() {
   const account = privateKeyToAccount(privKey);
   const { client } = await createInterface(chain, account);
 
+  console.log("╔══════════════════════════════════════════════════════════════╗");
+  console.log("║           SRC20 LISTENER (seismic-viem)                      ║");
+  console.log("║   Transfer amounts are ENCRYPTED - requires AES key         ║");
+  console.log("╚══════════════════════════════════════════════════════════════╝");
+
   if (values.recipient) {
     // Recipient mode: listen using your own registered key
     const aesKey = optionalEnv("RECIPIENT_AES_KEY") as Hex | undefined;
@@ -94,13 +99,13 @@ async function main() {
     console.error("Please specify --recipient or --intelligence flag");
     console.log("\nUsage:");
     console.log(
-      "  bun run dev -- --recipient             Listen as a recipient",
+      "  bun run dev:src20 -- --recipient             Listen as a recipient",
     );
     console.log(
-      "  bun run dev -- --recipient --no-prompt Listen as a recipient (daemon mode)",
+      "  bun run dev:src20 -- --recipient --no-prompt Listen as a recipient (daemon mode)",
     );
     console.log(
-      "  bun run dev -- --intelligence          Listen as an intelligence provider",
+      "  bun run dev:src20 -- --intelligence          Listen as an intelligence provider",
     );
     process.exit(1);
   }
@@ -126,3 +131,4 @@ main().catch((err) => {
   console.error("Fatal error:", err);
   process.exit(1);
 });
+

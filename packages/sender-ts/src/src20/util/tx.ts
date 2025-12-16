@@ -1,23 +1,31 @@
-import { createSeismicDevnet, type ShieldedWalletClient } from "seismic-viem";
+import {
+  createSeismicDevnet,
+  type ShieldedWalletClient,
+} from "seismic-viem";
 
 import { http, type Chain } from "viem";
 import type { Account } from "viem/accounts";
 import { createShieldedWalletClient, getShieldedContract } from "seismic-viem";
 
 import { SRC20Abi } from "./abi";
-import DeployOut from "../../../contracts/out/deploy.json";
+import DeployOut from "../../../../contracts/out/deploy.json";
 import { logger } from "./logger";
 
 export const integrationChain = createSeismicDevnet({
   nodeHost: "lyron.seismicdev.net",
 });
 
+// Type for the interface returned by createInterface (inferred from function)
+export type SRC20Interface = Awaited<ReturnType<typeof createInterface>>;
+
 export async function createInterface(chain: Chain, account: Account) {
+  // seismic-viem: createShieldedWalletClient for encrypted transactions
   const client = await createShieldedWalletClient({
     chain,
     account,
     transport: http(),
   });
+  // seismic-viem: getShieldedContract for automatic encryption of suint256 params
   const contract = getShieldedContract({
     abi: SRC20Abi,
     address: DeployOut.MockSRC20 as `0x${string}`,
