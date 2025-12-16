@@ -1,4 +1,4 @@
-import { type AbiEvent, type PublicClient } from "viem";
+import { type AbiEvent, type PublicClient, type Address, formatUnits } from "viem";
 import { ERC20Abi } from "./util/abi";
 import DeployOut from "../../../contracts/out/deploy.json";
 
@@ -43,5 +43,43 @@ export function attachEventListener(client: PublicClient) {
       });
     },
   });
+}
+
+/**
+ * Periodically reads Alice's balance using a standard read.
+ *
+ * In ERC20: Anyone can call balanceOf(address) to see ANY account's balance
+ * This is PUBLIC information - no signature required!
+ */
+export async function startBalancePolling(
+  client: PublicClient,
+  address: Address,
+  intervalMs: number = 30000,
+) {
+  const pollBalance = async () => {
+    try {
+      // ERC20: Standard readContract - anyone can read anyone's balance!
+      const balance = await client.readContract({
+        abi: ERC20Abi,
+        address: DeployOut.MockERC20 as `0x${string}`,
+        functionName: "balanceOf",
+        args: [address],
+      });
+
+      console.log("┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓");
+      console.log("┃  [ERC20] Balance Check (PUBLIC - anyone can read)          ┃");
+      console.log("┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫");
+      console.log(`┃  Address: ${address}`);
+      console.log(`┃  Balance: ${formatUnits(balance as bigint, 18)} sTKN`);
+      console.log("┃");
+      console.log("┃  Note: This balance is PUBLIC - anyone can read it!");
+      console.log("┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛\n");
+    } catch (error) {
+      console.error("Failed to read balance:", error);
+    }
+  };
+
+  await pollBalance();
+  setInterval(pollBalance, intervalMs);
 }
 

@@ -1,10 +1,17 @@
+import { type Hex } from "viem";
+import { privateKeyToAccount } from "viem/accounts";
+
 import { createClient, localChain, integrationChain } from "./util/tx";
-import { attachEventListener } from "./listener";
+import { attachEventListener, startBalancePolling } from "./listener";
 import { requireEnv } from "./util/config";
 
 async function main() {
   const mode = requireEnv("MODE");
   const chain = mode === "local" ? localChain : integrationChain;
+
+  // Get Alice's address to demonstrate public balance reads
+  const alicePrivKey = requireEnv("ALICE_PRIVATE_KEY") as Hex;
+  const aliceAddress = privateKeyToAccount(alicePrivKey).address;
 
   // Standard viem client - NO seismic-viem, NO shielded client
   const client = createClient(chain);
@@ -18,6 +25,10 @@ async function main() {
 
   // No AES key needed - events are plaintext
   attachEventListener(client);
+
+  // Start periodic balance polling (every 30 seconds)
+  // Demonstrates that ERC20 balances are PUBLIC - anyone can read anyone's balance
+  await startBalancePolling(client, aliceAddress, 30000);
 }
 
 main().catch((err) => {

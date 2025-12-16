@@ -1,6 +1,6 @@
 import { keccak256 } from "ethers";
-import { type AbiEvent, type Hex, type Address } from "viem";
-import { AesGcmCrypto, type ShieldedWalletClient } from "seismic-viem";
+import { type AbiEvent, type Hex, type Address, formatUnits } from "viem";
+import { AesGcmCrypto, type ShieldedWalletClient, signedReadContract } from "seismic-viem";
 
 import { SRC20Abi } from "./util/abi";
 import DeployOut from "../../../contracts/out/deploy.json";
@@ -184,5 +184,56 @@ function logApproval(data: any, mode: ListenerMode) {
   } else {
     console.log("    amount:", amount, "(decrypted from encrypted bytes)\n");
   }
+}
+
+/**
+ * Periodically reads the user's balance using a Signed Read.
+ *
+ * In ERC20: Anyone can call balanceOf(address) to see any account's balance
+ * In SRC20: balance() only returns YOUR OWN balance, requires a Signed Read
+ *           to prove you are the owner of the account
+ *
+ * @see https://client.seismic.systems/viem/contract/signed-read
+ */
+export async function startBalancePolling(
+  client: ShieldedWalletClient,
+  intervalMs: number = 30000,
+) {
+  const address = client.account?.address;
+  if (!address) {
+    console.error("Cannot poll balance: no account on client");
+    return;
+  }
+
+  const pollBalance = async () => {
+    try {
+      // SRC20: Uses signedReadContract because balance() checks msg.sender
+      // This is different from ERC20's balanceOf(address) which anyone can call
+      const balance = await signedReadContract(client, {
+        abi: SRC20Abi,
+        address: DeployOut.MockSRC20 as `0x${string}`,
+        functionName: "balance",
+        args: [],
+      });
+
+      console.log("┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓");
+      console.log("┃  [SRC20] Balance Check (via Signed Read)                   ┃");
+      console.log("┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫");
+      console.log(`┃  Address: ${address}`);
+      console.log(`┃  Balance: ${formatUnits(balance as bigint, 18)} cTKN`);
+      console.log("┃");
+      console.log("┃  Note: This balance is PRIVATE - only the owner can read it");
+      console.log("┃  ERC20 balanceOf() is PUBLIC - anyone can read any balance");
+      console.log("┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛\n");
+    } catch (error) {
+      console.error("Failed to read balance:", error);
+    }
+  };
+
+  // Initial read
+  await pollBalance();
+
+  // Periodic reads
+  setInterval(pollBalance, intervalMs);
 }
 

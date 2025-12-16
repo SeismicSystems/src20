@@ -4,7 +4,7 @@ import { sanvil } from "seismic-viem";
 import { parseArgs } from "util";
 import * as readline from "readline";
 
-import { attachEventListener, attachRecipientListener } from "./listener";
+import { attachEventListener, attachRecipientListener, startBalancePolling } from "./listener";
 import { requireEnv, optionalEnv } from "./util/config";
 import { createInterface, integrationChain } from "./util/tx";
 import {
@@ -86,6 +86,10 @@ async function main() {
       } else {
         attachRecipientListener(client, null, account.address);
       }
+
+      // Start periodic balance polling (every 30 seconds)
+      // Demonstrates that SRC20 balances are PRIVATE - requires a Signed Read
+      await startBalancePolling(client, 30000);
     } else {
       console.error("RECIPIENT_AES_KEY is required in --recipient mode");
       process.exit(1);
@@ -95,6 +99,10 @@ async function main() {
     const aesKey = requireEnv("INTELLIGENCE_AES_KEY") as Hex;
     console.log("Running as Intelligence Provider\n");
     attachEventListener(client, aesKey, "intelligence");
+
+    // Start periodic balance polling (every 30 seconds)
+    // Demonstrates that SRC20 balances are PRIVATE - requires a Signed Read
+    await startBalancePolling(client, 30000);
   } else {
     console.error("Please specify --recipient or --intelligence flag");
     console.log("\nUsage:");

@@ -59,14 +59,14 @@ packages/
 | Library | Client Type | Code |
 |---------|-------------|------|
 | **viem** (ERC20) | `WalletClient` | [`createWalletClient({...})`](packages/sender-ts/src/erc20/util/tx.ts#L34-L38) |
-| **seismic-viem** (SRC20) | `ShieldedWalletClient` | [`createShieldedWalletClient({...})`](packages/sender-ts/src/src20/util/tx.ts#L22-L26) |
+| **seismic-viem** (SRC20) | [`ShieldedWalletClient`](https://client.seismic.systems/viem/clients/wallet) | [`createShieldedWalletClient({...})`](packages/sender-ts/src/src20/util/tx.ts#L22-L26) |
 
 ### Contract Instantiation
 
 | Library | Function | Code |
 |---------|----------|------|
 | **viem** (ERC20) | `getContract({...})` | [`getContract({abi, address, client})`](packages/sender-ts/src/erc20/util/tx.ts#L48-L52) |
-| **seismic-viem** (SRC20) | `getShieldedContract({...})` | [`getShieldedContract({abi, address, client})`](packages/sender-ts/src/src20/util/tx.ts#L28-L32) |
+| **seismic-viem** (SRC20) | [`getShieldedContract({...})`](https://client.seismic.systems/viem/contract/instance) | [`getShieldedContract({abi, address, client})`](packages/sender-ts/src/src20/util/tx.ts#L28-L32) |
 
 ### Side-by-Side Code Comparison
 
@@ -77,6 +77,49 @@ packages/
 | **Sender ABI** | [`erc20/util/abi.ts`](packages/sender-ts/src/erc20/util/abi.ts) | [`src20/util/abi.ts`](packages/sender-ts/src/src20/util/abi.ts) |
 | **Listener entry** | [`erc20/index.ts`](packages/listener-ts/src/erc20/index.ts) | [`src20/index.ts`](packages/listener-ts/src/src20/index.ts) |
 | **Listener logic** | [`erc20/listener.ts`](packages/listener-ts/src/erc20/listener.ts) | [`src20/listener.ts`](packages/listener-ts/src/src20/listener.ts) |
+
+### Reading Private Balances: Signed Reads
+
+A key difference between ERC20 and SRC20 is how balances are read:
+
+| Aspect | ERC20 | SRC20 |
+|--------|-------|-------|
+| **Function** | `balanceOf(address)` | `balance()` |
+| **Who can read** | Anyone can read ANY balance | Only owner can read their OWN balance |
+| **Method** | Standard `eth_call` | [Signed Read](https://client.seismic.systems/viem/contract/signed-read) |
+| **Privacy** | ❌ Zero privacy | ✅ Full privacy |
+
+#### Why Signed Reads?
+
+In Ethereum, anyone can make an `eth_call` and specify any `from` address to impersonate that account. On Seismic, this is blocked—any `eth_call` has its `from` address overridden to zero.
+
+To read data that depends on `msg.sender` (like your private balance), use a **[Signed Read](https://client.seismic.systems/viem/contract/signed-read)**. This sends a signed message proving your identity, allowing the contract to return your private data.
+
+```typescript
+import { signedReadContract } from 'seismic-viem'
+
+// SRC20: Read your own private balance (requires signature)
+const myBalance = await signedReadContract(client, {
+  abi: SRC20Abi,
+  address: contractAddress,
+  functionName: 'balance',
+  args: [],
+})
+```
+
+Compare to ERC20 where anyone can read anyone's balance:
+
+```typescript
+// ERC20: Read ANY address's balance (no signature needed)
+const anyoneBalance = await client.readContract({
+  abi: ERC20Abi,
+  address: contractAddress,
+  functionName: 'balanceOf',
+  args: [targetAddress],  // Can be ANY address!
+})
+```
+
+The listener periodically polls balances to demonstrate this difference. See [`listener.ts`](packages/listener-ts/src/src20/listener.ts) for the SRC20 implementation using `signedReadContract`.
 
 ---
 
