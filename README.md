@@ -105,9 +105,8 @@ When an SRC20 transfer or approval occurs, the contract emits **multiple encrypt
 
 | Role | Can Decrypt Transfers | Can Decrypt Approvals |
 |------|----------------------|----------------------|
-| **Intelligence Provider** | ✅ All transfers | ✅ All approvals |
-| **Recipient** | ✅ Transfers TO them | ❌ |
-| **Spender** | ❌ | ✅ Approvals FOR them |
+| **Intelligence Provider** | ✅ ALL transfers | ❌  |
+| **Recipient** | ✅ Transfers TO them | ✅ Approvals TO them |
 | **Random Observer** | ❌ | ❌ |
 
 ---
