@@ -1,39 +1,6 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-parse_broadcast() {
-    local file_path="$1"
-    local -n contract_map="$2"
-    
-    if [[ ! -f "$file_path" ]]; then
-        echo "Error: File '$file_path' not found" >&2
-        return 1
-    fi
-    
-    contract_map=()
-    
-    while IFS=':' read -r contract_name contract_address; do
-        if [[ -n "$contract_name" && -n "$contract_address" ]]; then
-            contract_map["$contract_name"]="$contract_address"
-        fi
-    done < <(jq -r '.transactions[] | select(.transactionType == "CREATE") | "\(.contractName):\(.contractAddress)"' "$file_path" 2>/dev/null)
-}
-
-array_to_json() {
-    local -n arr="$1"
-    local json="{"
-    local first=true
-    
-    for key in "${!arr[@]}"; do
-        if [[ "$first" == true ]]; then
-            first=false
-        else
-            json+=","
-        fi
-        json+="\"$key\":\"${arr[$key]}\""
-    done
-    json+="}"
-    echo "$json"
-}
+set -e
 
 source ./.env
 if [ "$MODE" == "local" ]; then
@@ -53,7 +20,9 @@ sforge script script/Deploy.s.sol:Deploy \
     --rpc-url $RPC_URL \
     --broadcast
 
-declare -A contract_addresses
-parse_broadcast "$BROADCAST_OUT" contract_addresses
+# Parse the broadcast output and create deploy.json using jq directly
+# This extracts all CREATE transactions and builds a JSON object
+jq -r '[.transactions[] | select(.transactionType == "CREATE") | {(.contractName): .contractAddress}] | add' "$BROADCAST_OUT" > ./out/deploy.json
 
-echo "$(array_to_json contract_addresses)" > ./out/deploy.json
+echo "Deployed contracts:"
+cat ./out/deploy.json

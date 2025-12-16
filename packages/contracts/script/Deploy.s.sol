@@ -5,6 +5,7 @@ import {Script} from "forge-std/Script.sol";
 import {console} from "forge-std/console.sol";
 
 import {MockSRC20} from "../test/utils/mocks/MockSRC20.sol";
+import {MockERC20} from "../test/utils/mocks/MockERC20.sol";
 
 contract Deploy is Script {
     function run() public {
@@ -18,10 +19,21 @@ contract Deploy is Script {
         address charlie = vm.addr(charliePrivkey);
 
         vm.startBroadcast(deployerPrivkey);
-        MockSRC20 token = new MockSRC20("Token", "TKN", 18);
-        token.mint(alice, suint256(2e27));
-        token.mint(bob, suint256(2e27));
-        token.mint(charlie, suint256(2e27));
+
+        // Deploy SRC20 (confidential token)
+        MockSRC20 src20 = new MockSRC20("Confidential Token", "cTKN", 18);
+        src20.mint(alice, suint256(2e27));
+        src20.mint(bob, suint256(2e27));
+        src20.mint(charlie, suint256(2e27));
+        console.log("MockSRC20 deployed at:", address(src20));
+
+        // Deploy ERC20 (standard token)
+        MockERC20 erc20 = new MockERC20("Standard Token", "sTKN", 18);
+        erc20.mint(alice, 2e27);
+        erc20.mint(bob, 2e27);
+        erc20.mint(charlie, 2e27);
+        console.log("MockERC20 deployed at:", address(erc20));
+
         vm.stopBroadcast();
     }
 }

@@ -91,3 +91,4 @@ export async function registerKey(
 export function computeKeyHash(aesKey: Hex): Hex {
   return keccak256(aesKey) as Hex;
 }
+

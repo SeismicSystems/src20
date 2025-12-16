@@ -149,6 +149,7 @@ export const SRC20Abi = [
       { internalType: "bytes32", name: "r", type: "bytes32" },
       { internalType: "bytes32", name: "s", type: "bytes32" },
     ],
+    outputs: [],
     stateMutability: "nonpayable",
     type: "function",
     name: "permit",
@@ -182,3 +183,4 @@ export const SRC20Abi = [
     outputs: [{ internalType: "bool", name: "", type: "bool" }],
   },
 ] as const satisfies Abi;
+

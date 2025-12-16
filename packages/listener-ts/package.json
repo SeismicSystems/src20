@@ -1,6 +1,6 @@
 {
   "name": "listener-ts",
-  "module": "src/index.ts",
+  "module": "src/src20/index.ts",
   "type": "module",
   "private": true,
   "devDependencies": {
@@ -10,7 +10,9 @@
     "typescript": "^5"
   },
   "scripts": {
-    "dev": "bun src/index.ts",
+    "dev:src20": "bun src/src20/index.ts",
+    "dev:erc20": "bun src/erc20/index.ts",
+    "dev": "bun src/src20/index.ts",
     "format": "prettier --write ."
   },
   "dependencies": {
