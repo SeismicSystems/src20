@@ -91,7 +91,7 @@ A key difference between ERC20 and SRC20 is how balances are read:
 
 #### Why Signed Reads?
 
-In Ethereum, anyone can make an `eth_call` and specify any `from` address to impersonate that account. On Seismic, this is blocked—any `eth_call` has its `from` address overridden to zero.
+In Ethereum, anyone can make an `eth_call` and specify any `from` address to impersonate that account. On Seismic, this is blocked—any **standard**  `eth_call` has its `from` address overridden to zero.
 
 To read data that depends on `msg.sender` (like your private balance), use a **[Signed Read](https://client.seismic.systems/viem/contract/signed-read)**. This sends a signed message proving your identity, allowing the contract to return your private data.
 
