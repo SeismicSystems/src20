@@ -158,7 +158,7 @@ When an SRC20 transfer or approval occurs, the contract emits **multiple encrypt
 
 SRC20 relies on two predeployed system contracts:
 
-### Directory Contract (`0x1000000000000000000000000000000000000004`)
+### [Directory Contract](https://github.com/SeismicSystems/seismic-contracts/blob/intelligence-contracts/src/directory/Directory.sol) (`0x1000000000000000000000000000000000000004`)
 
 The Directory contract maintains a mapping of addresses to their AES encryption keys:
 
@@ -173,7 +173,7 @@ interface IDirectory {
 
 **Purpose:** Allows users to register their AES keys so they can receive encrypted event data.
 
-### Intelligence Contract (`0x1000000000000000000000000000000000000005`)
+### [Intelligence Contract](https://github.com/SeismicSystems/seismic-contracts/blob/intelligence-contracts/src/intelligence/Intelligence.sol) (`0x1000000000000000000000000000000000000005`)
 
 The Intelligence contract manages intelligence providers who can decrypt all transfer/approval amounts:
 
@@ -193,6 +193,8 @@ interface IIntelligence {
 ## Prerequisites
 
 You need our fork of the `foundry` development suite (`sfoundry`), specifically `sforge`, our tool to help build, test, deploy and debug Seismic smart contracts, to run `contracts/`, `listener-ts`, and `sender-ts`. See [here](https://docs.seismic.systems/getting-started/publish-your-docs) for the installation command.
+
+You then need to run `bun install:all` from the root to install all dependencies.
 
 All packages read from a `.env` file in `packages/contracts/`. See [`packages/contracts/.env.example`](packages/contracts/.env.example) for the required variables.
 
