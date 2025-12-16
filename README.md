@@ -105,7 +105,7 @@ When an SRC20 transfer or approval occurs, the contract emits **multiple encrypt
 
 | Role | Can Decrypt Transfers | Can Decrypt Approvals |
 |------|----------------------|----------------------|
-| **Intelligence Provider** | ✅ ALL transfers | ❌  |
+| **Intelligence Provider** | ✅ ALL transfers | ✅ ALL approvals  |
 | **Recipient** | ✅ Transfers TO them | ✅ Approvals TO them |
 | **Random Observer** | ❌ | ❌ |
 
@@ -232,8 +232,7 @@ cd packages/listener-ts && bun dev:src20 -- --intelligence
 ```
 
 - Requires `INTELLIGENCE_AES_KEY` in `.env`
-- Decrypts **all** transfer amounts across all users
-- Can see all approval amounts
+- Decrypts **all** transfer and approval amounts across all users
 
 ### Recipient Mode
 
