@@ -19,7 +19,7 @@
     "dotenv": "^17.2.2",
     "ethers": "^6.15.0",
     "prettier": "^3.7.4",
-    "seismic-viem": "^1.0.46",
-    "viem": "^2.37.6"
+    "viem": "^2.37.6",
+    "seismic-viem": "^1.0.53"
   }
 }

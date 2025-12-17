@@ -1,4 +1,4 @@
-import { type Hex, type Address } from "viem";
+import { type Hex, type Address, type Chain } from "viem";
 import { privateKeyToAccount, type PrivateKeyAccount } from "viem/accounts";
 import { sanvil } from "seismic-viem";
 
@@ -31,9 +31,9 @@ async function main() {
   };
 
   const interfaces: Record<UserName, SRC20Interface> = {
-    alice: await createInterface(chain, accounts.alice),
-    bob: await createInterface(chain, accounts.bob),
-    charlie: await createInterface(chain, accounts.charlie),
+    alice: await createInterface(chain as Chain, accounts.alice),
+    bob: await createInterface(chain as Chain, accounts.bob),
+    charlie: await createInterface(chain as Chain, accounts.charlie),
   };
 
   const addresses: Record<UserName, Address> = {
