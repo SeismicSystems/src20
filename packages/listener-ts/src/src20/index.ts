@@ -1,10 +1,14 @@
-import { type Hex, type Address } from "viem";
+import { type Hex, type Chain, http } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
-import { sanvil } from "seismic-viem";
+import { sanvil, createShieldedPublicClient, type ShieldedPublicClient } from "seismic-viem";
 import { parseArgs } from "util";
 import * as readline from "readline";
 
-import { attachEventListener, attachRecipientListener, startBalancePolling } from "./listener";
+import {
+  attachWalletEventListener,
+  attachPublicEventListener,
+  startBalancePolling,
+} from "./listener";
 import { requireEnv, optionalEnv } from "./util/config";
 import { createInterface, integrationChain } from "./util/tx";
 import {
@@ -28,8 +32,6 @@ async function main() {
   const mode = requireEnv("MODE");
 
   const chain = mode === "local" ? sanvil : integrationChain;
-  const account = privateKeyToAccount(privKey);
-  const { client } = await createInterface(chain, account);
 
   console.log("╔══════════════════════════════════════════════════════════════╗");
   console.log("║           SRC20 LISTENER (seismic-viem)                      ║");
@@ -37,11 +39,14 @@ async function main() {
   console.log("╚══════════════════════════════════════════════════════════════╝");
 
   if (values.recipient) {
-    // Recipient mode: listen using your own registered key
+    // Recipient mode: needs ShieldedWalletClient for signing (balance polling, registration)
+    const account = privateKeyToAccount(privKey);
+    const { client: walletClient } = await createInterface(chain as Chain, account);
+
     const aesKey = optionalEnv("RECIPIENT_AES_KEY") as Hex | undefined;
 
     // Check if user is registered
-    let isRegistered = await checkRegistration(client, account.address);
+    let isRegistered = await checkRegistration(walletClient, account.address);
 
     if (!isRegistered) {
       console.warn(
@@ -54,9 +59,9 @@ async function main() {
         );
         if (shouldRegister) {
           console.log("Registering your key...");
-          const txHash = await registerKey(client, aesKey);
+          const txHash = await registerKey(walletClient, aesKey);
           console.log(`Registration tx submitted: ${txHash}`);
-          await client.waitForTransactionReceipt({ hash: txHash });
+          await walletClient.waitForTransactionReceipt({ hash: txHash });
           console.log("Key registered successfully!\n");
           isRegistered = true;
         } else {
@@ -75,34 +80,36 @@ async function main() {
       console.log("You are registered in the Directory.\n");
     }
 
-    // Get the key hash for listening
-    if (aesKey) {
-      const keyHash = computeKeyHash(aesKey);
-      console.log(
-        `Listening for events encrypted to your key whose hash is: ${keyHash}\n`,
-      );
-      if (isRegistered) {
-        attachRecipientListener(client, aesKey, account.address);
-      } else {
-        attachRecipientListener(client, null, account.address);
-      }
+    if (isRegistered) {
+      // Use watchSRC20Events - auto-fetches AES key from Directory via signed read
+      console.log("Using watchSRC20Events (auto-fetches key from Directory)\n");
+      attachWalletEventListener(walletClient, "recipient");
 
       // Start periodic balance polling (every 30 seconds)
       // Demonstrates that SRC20 balances are PRIVATE - requires a Signed Read
-      await startBalancePolling(client, 30000);
+      await startBalancePolling(walletClient, 30000);
     } else {
-      console.error("RECIPIENT_AES_KEY is required in --recipient mode");
+      console.error("Cannot listen without being registered in Directory");
       process.exit(1);
     }
   } else if (values.intelligence) {
-    // Intelligence provider mode
-    const aesKey = requireEnv("INTELLIGENCE_AES_KEY") as Hex;
-    console.log("Running as Intelligence Provider\n");
-    attachEventListener(client, aesKey, "intelligence");
+    // Intelligence provider mode: uses ShieldedPublicClient with explicit viewing key
+    const publicClient = createShieldedPublicClient({
+      chain: chain as any,
+      transport: http() as any,
+    });
 
-    // Start periodic balance polling (every 30 seconds)
-    // Demonstrates that SRC20 balances are PRIVATE - requires a Signed Read
-    await startBalancePolling(client, 30000);
+    const viewingKey = requireEnv("INTELLIGENCE_AES_KEY") as Hex;
+    const keyHash = computeKeyHash(viewingKey);
+    
+    console.log("Running as Intelligence Provider\n");
+    console.log("Using ShieldedPublicClient + watchSRC20EventsWithKey\n");
+    console.log(`Listening for events encrypted to key hash: ${keyHash}\n`);
+
+    // Use watchSRC20EventsWithKey - takes explicit viewing key
+    attachPublicEventListener(publicClient as ShieldedPublicClient, viewingKey, "intelligence");
+
+    // Note: Balance polling not available for intelligence mode (requires signing)
   } else {
     console.error("Please specify --recipient or --intelligence flag");
     console.log("\nUsage:");
@@ -139,4 +146,3 @@ main().catch((err) => {
   console.error("Fatal error:", err);
   process.exit(1);
 });
-
