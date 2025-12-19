@@ -14,4 +14,3 @@ export function requireEnv(key: string): string {
 export function optionalEnv(key: string): string | undefined {
   return process.env[key];
 }
-

@@ -179,4 +179,3 @@ export const SRC20Abi = [
     anonymous: false,
   },
 ] as const satisfies Abi;
-

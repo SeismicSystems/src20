@@ -6,11 +6,7 @@
       "contractName": "MockSRC20",
       "contractAddress": "0x656da27cfd04b33316492ba6f2f7005b43deb8c9",
       "function": null,
-      "arguments": [
-        "Token",
-        "TKN",
-        "18"
-      ],
+      "arguments": ["Token", "TKN", "18"],
       "transaction": {
         "from": "0x6346d64a3f31774283b72926b75ffda9662266ce",
         "gas": "0x227f12",

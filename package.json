@@ -8,13 +8,10 @@
   ],
   "scripts": {
     "deploy": "cd packages/contracts && ./script/deploy.sh",
-
     "sender:src20": "bun run --cwd packages/sender-ts dev:src20",
     "sender:erc20": "bun run --cwd packages/sender-ts dev:erc20",
-
     "listener:src20": "bun run --cwd packages/listener-ts dev:src20 -- --intelligence",
     "listener:erc20": "bun run --cwd packages/listener-ts dev:erc20",
-
     "install:all": "bun install --cwd packages/sender-ts && bun install --cwd packages/listener-ts",
     "format:all": "bun run --cwd packages/sender-ts format && bun run --cwd packages/listener-ts format"
   }

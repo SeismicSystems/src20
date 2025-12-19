@@ -26,4 +26,3 @@ export async function createInterface(chain: Chain, account: Account) {
   });
   return { client, contract };
 }
-

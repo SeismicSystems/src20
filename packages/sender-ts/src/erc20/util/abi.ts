@@ -98,4 +98,3 @@ export const ERC20Abi = [
     anonymous: false,
   },
 ] as const satisfies Abi;
-

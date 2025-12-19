@@ -22,4 +22,3 @@ export const integrationChain = defineChain({
   nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 },
   rpcUrls: { default: { http: ["https://lyron.seismicdev.net/rpc"] } },
 });
-

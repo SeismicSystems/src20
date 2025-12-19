@@ -1,7 +1,4 @@
-import {
-  createSeismicDevnet,
-  type ShieldedWalletClient,
-} from "seismic-viem";
+import { createSeismicDevnet, type ShieldedWalletClient } from "seismic-viem";
 
 import { http, type Chain } from "viem";
 import type { Account } from "viem/accounts";

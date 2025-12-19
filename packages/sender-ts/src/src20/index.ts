@@ -1,4 +1,4 @@
-import { type Hex, type Address } from "viem";
+import { type Hex, type Address, type Chain } from "viem";
 import { privateKeyToAccount, type PrivateKeyAccount } from "viem/accounts";
 import { sanvil } from "seismic-viem";
 
@@ -31,9 +31,9 @@ async function main() {
   };
 
   const interfaces: Record<UserName, SRC20Interface> = {
-    alice: await createInterface(chain, accounts.alice),
-    bob: await createInterface(chain, accounts.bob),
-    charlie: await createInterface(chain, accounts.charlie),
+    alice: await createInterface(chain as Chain, accounts.alice),
+    bob: await createInterface(chain as Chain, accounts.bob),
+    charlie: await createInterface(chain as Chain, accounts.charlie),
   };
 
   const addresses: Record<UserName, Address> = {
@@ -42,10 +42,18 @@ async function main() {
     charlie: accounts.charlie.address,
   };
 
-  console.log("╔══════════════════════════════════════════════════════════════╗");
-  console.log("║           SRC20 SENDER (seismic-viem)                        ║");
-  console.log("║   All amounts are ENCRYPTED before sending                   ║");
-  console.log("╚══════════════════════════════════════════════════════════════╝");
+  console.log(
+    "╔══════════════════════════════════════════════════════════════╗",
+  );
+  console.log(
+    "║           SRC20 SENDER (seismic-viem)                        ║",
+  );
+  console.log(
+    "║   All amounts are ENCRYPTED before sending                   ║",
+  );
+  console.log(
+    "╚══════════════════════════════════════════════════════════════╝",
+  );
   logger.info(`Running on network: ${chain.name}\n`);
 
   // Cycle through transfers, approvals, mints, and burns
@@ -53,7 +61,9 @@ async function main() {
   while (true) {
     try {
       const amount = BigInt(Math.floor(Math.random() * (Number(1e2) - 1) + 1));
-      logger.info(`Sampled amount: ${amount} (will be ENCRYPTED before tx submission)`);
+      logger.info(
+        `Sampled amount: ${amount} (will be ENCRYPTED before tx submission)`,
+      );
 
       // Transfer: Alice -> Bob
       await waitForTx(
@@ -127,9 +137,14 @@ async function main() {
         const approvalAmount = BigInt(
           Math.floor(Math.random() * (Number(1e3) - 1) + 1),
         );
-        logger.info(`    [Approval] Bob approving Alice for ${approvalAmount} (ENCRYPTED)`);
+        logger.info(
+          `    [Approval] Bob approving Alice for ${approvalAmount} (ENCRYPTED)`,
+        );
         await waitForTx(
-          interfaces.bob.contract.write.approve([addresses.alice, approvalAmount]),
+          interfaces.bob.contract.write.approve([
+            addresses.alice,
+            approvalAmount,
+          ]),
           interfaces.bob.client,
         );
         logger.info("    Finished Bob approves Alice");
@@ -188,7 +203,10 @@ async function main() {
           `    [Burn] Charlie burning ${burnAmount} from herself (ENCRYPTED)`,
         );
         await waitForTx(
-          interfaces.charlie.contract.write.burn([addresses.charlie, burnAmount]),
+          interfaces.charlie.contract.write.burn([
+            addresses.charlie,
+            burnAmount,
+          ]),
           interfaces.charlie.client,
         );
         logger.info("    Finished Charlie burn\n");

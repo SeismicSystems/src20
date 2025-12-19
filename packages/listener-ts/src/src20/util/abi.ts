@@ -183,4 +183,3 @@ export const SRC20Abi = [
     outputs: [{ internalType: "bool", name: "", type: "bool" }],
   },
 ] as const satisfies Abi;
-
