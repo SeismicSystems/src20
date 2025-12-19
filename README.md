@@ -22,89 +22,149 @@ packages/
 
 ### Functions
 
-| Function | ERC20 | SRC20 |
-|----------|-------|-------|
-| `transfer(to, amount)` | `uint256 amount` - plaintext | `suint256 amount` - **shielded type** |
-| `approve(spender, amount)` | `uint256 amount` - plaintext | `suint256 amount` - **shielded type** |
-| `transferFrom(from, to, amount)` | `uint256 amount` - plaintext | `suint256 amount` - **shielded type** |
-| `balanceOf(account)` | Returns `uint256` - public | N/A - use `balance()` for own balance only |
-| `balance()` | N/A | Returns caller's own balance (private to caller) |
-| `allowance(owner, spender)` | Returns `uint256` - public | `allowance(spender)` - returns caller's allowance only |
-| `mint(to, amount)` | `uint256 amount` - plaintext | `suint256 amount` - **shielded type** |
-| `burn(from, amount)` | `uint256 amount` - plaintext | `suint256 amount` - **shielded type** |
+| Function                         | ERC20                        | SRC20                                                  |
+| -------------------------------- | ---------------------------- | ------------------------------------------------------ |
+| `transfer(to, amount)`           | `uint256 amount` - plaintext | `suint256 amount` - **shielded type**                  |
+| `approve(spender, amount)`       | `uint256 amount` - plaintext | `suint256 amount` - **shielded type**                  |
+| `transferFrom(from, to, amount)` | `uint256 amount` - plaintext | `suint256 amount` - **shielded type**                  |
+| `balanceOf(account)`             | Returns `uint256` - public   | N/A - use `balance()` for own balance only             |
+| `balance()`                      | N/A                          | Returns caller's own balance (private to caller)       |
+| `allowance(owner, spender)`      | Returns `uint256` - public   | `allowance(spender)` - returns caller's allowance only |
+| `mint(to, amount)`               | `uint256 amount` - plaintext | `suint256 amount` - **shielded type**                  |
+| `burn(from, amount)`             | `uint256 amount` - plaintext | `suint256 amount` - **shielded type**                  |
 
 ### Events
 
-| Event | ERC20 | SRC20 |
-|-------|-------|-------|
-| **Transfer** | `Transfer(from, to, amount)` | `Transfer(from, to, encryptKeyHash, encryptedAmount)` |
+| Event        | ERC20                              | SRC20                                                       |
+| ------------ | ---------------------------------- | ----------------------------------------------------------- |
+| **Transfer** | `Transfer(from, to, amount)`       | `Transfer(from, to, encryptKeyHash, encryptedAmount)`       |
 | **Approval** | `Approval(owner, spender, amount)` | `Approval(owner, spender, encryptKeyHash, encryptedAmount)` |
 
 **Key difference:** SRC20 events emit **encrypted amounts** with a key hash identifier, allowing only authorized parties to decrypt.
 
 ### Storage Types
 
-| Storage | ERC20 | SRC20 |
-|---------|-------|-------|
-| Balances | `mapping(address => uint256)` | `mapping(address => suint256)` |
-| Allowances | `mapping(address => mapping(address => uint256))` | `mapping(address => mapping(address => suint256))` |
-| Total Supply | `uint256 public totalSupply` | `suint256 internal supply` (private) |
+| Storage      | ERC20                                             | SRC20                                              |
+| ------------ | ------------------------------------------------- | -------------------------------------------------- |
+| Balances     | `mapping(address => uint256)`                     | `mapping(address => suint256)`                     |
+| Allowances   | `mapping(address => mapping(address => uint256))` | `mapping(address => mapping(address => suint256))` |
+| Total Supply | `uint256 public totalSupply`                      | `suint256 internal supply` (private)               |
 
 ---
 
 ## Client-Side: viem vs seismic-viem
 
+### Chain Definition
+
+| Library                  | Function                                                                   | Code                                                                                                           |
+| ------------------------ | -------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| **viem** (ERC20)         | `defineChain({...})`                                                       | Manual chain definition with `id`, `name`, `rpcUrls`                                                           |
+| **seismic-viem** (SRC20) | [`createSeismicDevnet({...})`](https://client.seismic.systems/viem/chains) | [`createSeismicDevnet({ nodeHost: "lyron.seismicdev.net" })`](packages/sender-ts/src/src20/util/tx.ts#L14-L16) |
+
+```typescript
+// ERC20: Manual chain definition
+import { defineChain } from "viem";
+const chain = defineChain({
+  id: 5124,
+  name: "Seismic Devnet",
+  nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 },
+  rpcUrls: { default: { http: ["https://lyron.seismicdev.net/rpc"] } },
+});
+
+// SRC20: Use seismic-viem helper
+import { createSeismicDevnet } from "seismic-viem";
+const chain = createSeismicDevnet({ nodeHost: "lyron.seismicdev.net" });
+```
+
 ### Client Creation
 
-| Library | Client Type | Code |
-|---------|-------------|------|
-| **viem** (ERC20) | `WalletClient` | [`createWalletClient({...})`](packages/sender-ts/src/erc20/util/tx.ts#L34-L38) |
-| **seismic-viem** (SRC20) | [`ShieldedWalletClient`](https://client.seismic.systems/viem/clients/wallet) | [`createShieldedWalletClient({...})`](packages/sender-ts/src/src20/util/tx.ts#L22-L26) |
+| Library                              | Client Type                                                                  | Code                                                                                    |
+| ------------------------------------ | ---------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| **viem** (ERC20)                     | `WalletClient`                                                               | [`createWalletClient({...})`](packages/sender-ts/src/erc20/util/tx.ts#L37-L41)          |
+| **seismic-viem** (SRC20)             | [`ShieldedWalletClient`](https://client.seismic.systems/viem/clients/wallet) | [`createShieldedWalletClient({...})`](packages/sender-ts/src/src20/util/tx.ts#L21-L27)  |
+| **seismic-viem** (SRC20 - read-only) | [`ShieldedPublicClient`](https://client.seismic.systems/viem/clients/public) | [`createShieldedPublicClient({...})`](packages/listener-ts/src/src20/index.ts#L97-L100) |
+
+```typescript
+// ERC20: Standard viem
+import { createWalletClient, createPublicClient, http } from "viem";
+const walletClient = createWalletClient({ chain, account, transport: http() });
+const publicClient = createPublicClient({ chain, transport: http() });
+
+// SRC20: seismic-viem (async - performs key derivation)
+import {
+  createShieldedWalletClient,
+  createShieldedPublicClient,
+} from "seismic-viem";
+const walletClient = await createShieldedWalletClient({
+  chain,
+  account,
+  transport: http(),
+});
+const publicClient = createShieldedPublicClient({ chain, transport: http() });
+```
 
 ### Contract Instantiation
 
-| Library | Function | Code |
-|---------|----------|------|
-| **viem** (ERC20) | `getContract({...})` | [`getContract({abi, address, client})`](packages/sender-ts/src/erc20/util/tx.ts#L48-L52) |
-| **seismic-viem** (SRC20) | [`getShieldedContract({...})`](https://client.seismic.systems/viem/contract/instance) | [`getShieldedContract({abi, address, client})`](packages/sender-ts/src/src20/util/tx.ts#L28-L32) |
+| Library                  | Function                                                                              | Code                                                                                             |
+| ------------------------ | ------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| **viem** (ERC20)         | `getContract({...})`                                                                  | [`getContract({abi, address, client})`](packages/sender-ts/src/erc20/util/tx.ts#L51-L55)         |
+| **seismic-viem** (SRC20) | [`getShieldedContract({...})`](https://client.seismic.systems/viem/contract/instance) | [`getShieldedContract({abi, address, client})`](packages/sender-ts/src/src20/util/tx.ts#L28-L33) |
+
+```typescript
+// ERC20: Standard viem - amounts sent in PLAINTEXT
+import { getContract } from "viem";
+const contract = getContract({
+  abi: ERC20Abi,
+  address: contractAddress,
+  client: { wallet: walletClient, public: publicClient },
+});
+
+// SRC20: seismic-viem - automatic encryption of suint256 params
+import { getShieldedContract } from "seismic-viem";
+const contract = getShieldedContract({
+  abi: SRC20Abi,
+  address: contractAddress,
+  client: walletClient,
+});
+```
 
 ### Side-by-Side Code Comparison
 
-| Operation | ERC20 (viem) | SRC20 (seismic-viem) |
-|-----------|--------------|----------------------|
-| **Sender entry** | [`erc20/index.ts`](packages/sender-ts/src/erc20/index.ts) | [`src20/index.ts`](packages/sender-ts/src/src20/index.ts) |
-| **Sender tx utils** | [`erc20/util/tx.ts`](packages/sender-ts/src/erc20/util/tx.ts) | [`src20/util/tx.ts`](packages/sender-ts/src/src20/util/tx.ts) |
-| **Sender ABI** | [`erc20/util/abi.ts`](packages/sender-ts/src/erc20/util/abi.ts) | [`src20/util/abi.ts`](packages/sender-ts/src/src20/util/abi.ts) |
-| **Listener entry** | [`erc20/index.ts`](packages/listener-ts/src/erc20/index.ts) | [`src20/index.ts`](packages/listener-ts/src/src20/index.ts) |
-| **Listener logic** | [`erc20/listener.ts`](packages/listener-ts/src/erc20/listener.ts) | [`src20/listener.ts`](packages/listener-ts/src/src20/listener.ts) |
+| Operation           | ERC20 (viem)                                                      | SRC20 (seismic-viem)                                              |
+| ------------------- | ----------------------------------------------------------------- | ----------------------------------------------------------------- |
+| **Sender entry**    | [`erc20/index.ts`](packages/sender-ts/src/erc20/index.ts)         | [`src20/index.ts`](packages/sender-ts/src/src20/index.ts)         |
+| **Sender tx utils** | [`erc20/util/tx.ts`](packages/sender-ts/src/erc20/util/tx.ts)     | [`src20/util/tx.ts`](packages/sender-ts/src/src20/util/tx.ts)     |
+| **Sender ABI**      | [`erc20/util/abi.ts`](packages/sender-ts/src/erc20/util/abi.ts)   | [`src20/util/abi.ts`](packages/sender-ts/src/src20/util/abi.ts)   |
+| **Listener entry**  | [`erc20/index.ts`](packages/listener-ts/src/erc20/index.ts)       | [`src20/index.ts`](packages/listener-ts/src/src20/index.ts)       |
+| **Listener logic**  | [`erc20/listener.ts`](packages/listener-ts/src/erc20/listener.ts) | [`src20/listener.ts`](packages/listener-ts/src/src20/listener.ts) |
 
 ### Reading Private Balances: Signed Reads
 
 A key difference between ERC20 and SRC20 is how balances are read:
 
-| Aspect | ERC20 | SRC20 |
-|--------|-------|-------|
-| **Function** | `balanceOf(address)` | `balance()` |
-| **Who can read** | Anyone can read ANY balance | Only owner can read their OWN balance |
-| **Method** | Standard `eth_call` | [Signed Read](https://client.seismic.systems/viem/contract/signed-read) |
-| **Privacy** | ❌ Zero privacy | ✅ Full privacy |
+| Aspect           | ERC20                       | SRC20                                                                   |
+| ---------------- | --------------------------- | ----------------------------------------------------------------------- |
+| **Function**     | `balanceOf(address)`        | `balance()`                                                             |
+| **Who can read** | Anyone can read ANY balance | Only owner can read their OWN balance                                   |
+| **Method**       | Standard `eth_call`         | [Signed Read](https://client.seismic.systems/viem/contract/signed-read) |
+| **Privacy**      | ❌ Zero privacy             | ✅ Full privacy                                                         |
 
 #### Why Signed Reads?
 
-In Ethereum, anyone can make an `eth_call` and specify any `from` address to impersonate that account. On Seismic, this is blocked—any **standard**  `eth_call` has its `from` address overridden to zero.
+In Ethereum, anyone can make an `eth_call` and specify any `from` address to impersonate that account. On Seismic, this is blocked—any **standard** `eth_call` has its `from` address overridden to zero.
 
 To read data that depends on `msg.sender` (like your private balance), use a **[Signed Read](https://client.seismic.systems/viem/contract/signed-read)**. This sends a signed message proving your identity, allowing the contract to return your private data.
 
 ```typescript
-import { signedReadContract } from 'seismic-viem'
+import { signedReadContract } from "seismic-viem";
 
 // SRC20: Read your own private balance (requires signature)
 const myBalance = await signedReadContract(client, {
   abi: SRC20Abi,
   address: contractAddress,
-  functionName: 'balance',
+  functionName: "balance",
   args: [],
-})
+});
 ```
 
 Compare to ERC20 where anyone can read anyone's balance:
@@ -114,12 +174,27 @@ Compare to ERC20 where anyone can read anyone's balance:
 const anyoneBalance = await client.readContract({
   abi: ERC20Abi,
   address: contractAddress,
-  functionName: 'balanceOf',
-  args: [targetAddress],  // Can be ANY address!
-})
+  functionName: "balanceOf",
+  args: [targetAddress], // Can be ANY address!
+});
 ```
 
 The listener periodically polls balances to demonstrate this difference. See [`listener.ts`](packages/listener-ts/src/src20/listener.ts) for the SRC20 implementation using `signedReadContract`.
+
+---
+
+## Watching SRC20 Events
+
+seismic-viem provides two helper functions for watching SRC20 events with automatic decryption:
+
+| Function                  | Client Type            | Key Source                           | Use Case                                                                 |
+| ------------------------- | ---------------------- | ------------------------------------ | ------------------------------------------------------------------------ |
+| `watchSRC20Events`        | `ShieldedWalletClient` | Auto-fetches from Directory contract | Registered recipients listening for their own events                     |
+| `watchSRC20EventsWithKey` | `ShieldedPublicClient` | Explicit viewing key parameter       | Designated listeners (e.g., intelligence providers) with a known AES key |
+
+- **`watchSRC20Events`**: Automatically retrieves the user's AES key from the Directory contract via a signed read, then filters and decrypts events encrypted to that key. See usage in [`attachWalletEventListener`](packages/listener-ts/src/src20/listener.ts#L21-L60).
+
+- **`watchSRC20EventsWithKey`**: Takes an explicit viewing key as a parameter, acting as a "designated" event listener for that key. Useful when you have the AES key directly (e.g., intelligence providers). See usage in [`attachPublicEventListener`](packages/listener-ts/src/src20/listener.ts#L66-L106).
 
 ---
 
@@ -146,11 +221,11 @@ When an SRC20 transfer or approval occurs, the contract emits **multiple encrypt
 
 ### Who Can Decrypt What?
 
-| Role | Can Decrypt Transfers | Can Decrypt Approvals |
-|------|----------------------|----------------------|
-| **Intelligence Provider** | ✅ ALL transfers | ✅ ALL approvals  |
-| **Recipient** | ✅ Transfers TO them | ✅ Approvals TO them |
-| **Random Observer** | ❌ | ❌ |
+| Role                      | Can Decrypt Transfers | Can Decrypt Approvals |
+| ------------------------- | --------------------- | --------------------- |
+| **Intelligence Provider** | ✅ ALL transfers      | ✅ ALL approvals      |
+| **Recipient**             | ✅ Transfers TO them  | ✅ Approvals TO them  |
+| **Random Observer**       | ❌                    | ❌                    |
 
 ---
 
@@ -218,6 +293,7 @@ bun run sender:src20
 ```
 
 Output:
+
 ```
 ╔══════════════════════════════════════════════════════════════╗
 ║           SRC20 SENDER (seismic-viem)                        ║
@@ -232,6 +308,7 @@ bun run sender:erc20
 ```
 
 Output:
+
 ```
 ╔══════════════════════════════════════════════════════════════╗
 ║           ERC20 SENDER (Standard viem)                       ║
@@ -257,12 +334,12 @@ bun run listener:erc20
 
 The sender scripts cycle through the following operations between Alice, Bob, and Charlie:
 
-| Operation | Probability | Description |
-|-----------|-------------|-------------|
-| **Transfer** | 100% | Alice → Bob → Charlie → Alice cycle |
-| **Approval** | 50% | Random approvals between users |
-| **Mint** | 40% | Alice mints to herself, Charlie mints to Bob |
-| **Burn** | 30% | Bob burns from himself, Charlie burns from herself |
+| Operation    | Probability | Description                                        |
+| ------------ | ----------- | -------------------------------------------------- |
+| **Transfer** | 100%        | Alice → Bob → Charlie → Alice cycle                |
+| **Approval** | 50%         | Random approvals between users                     |
+| **Mint**     | 40%         | Alice mints to herself, Charlie mints to Bob       |
+| **Burn**     | 30%         | Bob burns from himself, Charlie burns from herself |
 
 ---
 
@@ -294,10 +371,10 @@ The SRC20 listener uses the `encryptKeyHash` field in events to filter and decry
 
 ### Key Used by Mode
 
-| Mode | Environment Variable | What It Decrypts |
-|------|---------------------|------------------|
+| Mode             | Environment Variable   | What It Decrypts                         |
+| ---------------- | ---------------------- | ---------------------------------------- |
 | `--intelligence` | `INTELLIGENCE_AES_KEY` | All transfers & approvals (provider key) |
-| `--recipient` | `RECIPIENT_AES_KEY` | Only events TO your address |
+| `--recipient`    | `RECIPIENT_AES_KEY`    | Only events TO your address              |
 
 See [`listener.ts`](packages/listener-ts/src/src20/listener.ts) for the implementation.
 
@@ -324,7 +401,7 @@ cd packages/listener-ts && bun dev:src20 -- --recipient
 
 - Requires `RECIPIENT_AES_KEY` in `.env` (this will be Alice's AES encryption/decryption key since listener uses Alice's private key to initialize the shielded wallet client)
 - Only decrypts transfers **TO** you and approvals **FOR** you as spender
-- Prompts to register your key in the Directory if not already registered 
+- Prompts to register your key in the Directory if not already registered
 
 ### Daemon Mode
 
@@ -338,13 +415,13 @@ bun dev:src20 -- --recipient --no-prompt
 
 ## Available Scripts
 
-| Script | Description |
-|--------|-------------|
-| `bun run deploy` | Deploy both ERC20 and SRC20 contracts |
-| `bun run sender:src20` | Run SRC20 sender (encrypted amounts) |
-| `bun run sender:erc20` | Run ERC20 sender (plaintext amounts) |
+| Script                   | Description                            |
+| ------------------------ | -------------------------------------- |
+| `bun run deploy`         | Deploy both ERC20 and SRC20 contracts  |
+| `bun run sender:src20`   | Run SRC20 sender (encrypted amounts)   |
+| `bun run sender:erc20`   | Run ERC20 sender (plaintext amounts)   |
 | `bun run listener:src20` | Run SRC20 listener (intelligence mode) |
-| `bun run listener:erc20` | Run ERC20 listener (plaintext events) |
+| `bun run listener:erc20` | Run ERC20 listener (plaintext events)  |
 
 ---
 
@@ -360,6 +437,7 @@ go run ./
 ## Expected Output
 
 ### ERC20 Listener (Plaintext)
+
 ```
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 [ERC20] Transfer - PLAINTEXT (visible to everyone on-chain)
@@ -370,6 +448,7 @@ go run ./
 ```
 
 ### SRC20 Listener (Encrypted → Decrypted)
+
 ```
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 [Intelligence Provider] [SRC20] Transfer - ENCRYPTED (decrypted with AES key)

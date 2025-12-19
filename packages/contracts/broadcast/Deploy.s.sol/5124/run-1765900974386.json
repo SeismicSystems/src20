@@ -6,11 +6,7 @@
       "contractName": "MockSRC20",
       "contractAddress": "0x2bb778cdd843989481ea575a667260f78e67444a",
       "function": null,
-      "arguments": [
-        "Confidential Token",
-        "cTKN",
-        "18"
-      ],
+      "arguments": ["Confidential Token", "cTKN", "18"],
       "transaction": {
         "from": "0x6346d64a3f31774283b72926b75ffda9662266ce",
         "gas": "0x2a4ab4",
@@ -94,11 +90,7 @@
       "contractName": "MockERC20",
       "contractAddress": "0xfe85e3474741abe90fd0781f0a163f069871fa98",
       "function": null,
-      "arguments": [
-        "Standard Token",
-        "sTKN",
-        "18"
-      ],
+      "arguments": ["Standard Token", "sTKN", "18"],
       "transaction": {
         "from": "0x6346d64a3f31774283b72926b75ffda9662266ce",
         "gas": "0x1b4735",

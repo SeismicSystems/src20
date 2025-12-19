@@ -1,6 +1,10 @@
 import { type Hex, type Chain, http } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
-import { sanvil, createShieldedPublicClient, type ShieldedPublicClient } from "seismic-viem";
+import {
+  sanvil,
+  createShieldedPublicClient,
+  type ShieldedPublicClient,
+} from "seismic-viem";
 import { parseArgs } from "util";
 import * as readline from "readline";
 
@@ -33,15 +37,26 @@ async function main() {
 
   const chain = mode === "local" ? sanvil : integrationChain;
 
-  console.log("╔══════════════════════════════════════════════════════════════╗");
-  console.log("║           SRC20 LISTENER (seismic-viem)                      ║");
-  console.log("║   Transfer amounts are ENCRYPTED - requires AES key         ║");
-  console.log("╚══════════════════════════════════════════════════════════════╝");
+  console.log(
+    "╔══════════════════════════════════════════════════════════════╗",
+  );
+  console.log(
+    "║           SRC20 LISTENER (seismic-viem)                      ║",
+  );
+  console.log(
+    "║   Transfer amounts are ENCRYPTED - requires AES key         ║",
+  );
+  console.log(
+    "╚══════════════════════════════════════════════════════════════╝",
+  );
 
   if (values.recipient) {
     // Recipient mode: needs ShieldedWalletClient for signing (balance polling, registration)
     const account = privateKeyToAccount(privKey);
-    const { client: walletClient } = await createInterface(chain as Chain, account);
+    const { client: walletClient } = await createInterface(
+      chain as Chain,
+      account,
+    );
 
     const aesKey = optionalEnv("RECIPIENT_AES_KEY") as Hex | undefined;
 
@@ -101,13 +116,17 @@ async function main() {
 
     const viewingKey = requireEnv("INTELLIGENCE_AES_KEY") as Hex;
     const keyHash = computeKeyHash(viewingKey);
-    
+
     console.log("Running as Intelligence Provider\n");
     console.log("Using ShieldedPublicClient + watchSRC20EventsWithKey\n");
     console.log(`Listening for events encrypted to key hash: ${keyHash}\n`);
 
     // Use watchSRC20EventsWithKey - takes explicit viewing key
-    attachPublicEventListener(publicClient as ShieldedPublicClient, viewingKey, "intelligence");
+    attachPublicEventListener(
+      publicClient as ShieldedPublicClient,
+      viewingKey,
+      "intelligence",
+    );
 
     // Note: Balance polling not available for intelligence mode (requires signing)
   } else {

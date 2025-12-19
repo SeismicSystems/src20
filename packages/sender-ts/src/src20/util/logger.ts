@@ -6,4 +6,3 @@ export const logger = {
     console.error(`[${new Date().toISOString()}] ${message}`, error);
   },
 };
-

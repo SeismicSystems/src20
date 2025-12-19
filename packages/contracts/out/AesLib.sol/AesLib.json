@@ -1,1 +1,142 @@
-{"abi":[{"type":"function","name":"AES_DEC_PRECOMPILE","inputs":[],"outputs":[{"name":"","type":"address","internalType":"address"}],"stateMutability":"view"},{"type":"function","name":"AES_ENC_PRECOMPILE","inputs":[],"outputs":[{"name":"","type":"address","internalType":"address"}],"stateMutability":"view"},{"type":"function","name":"HKDF_PRECOMPILE","inputs":[],"outputs":[{"name":"","type":"address","internalType":"address"}],"stateMutability":"view"},{"type":"error","name":"AESPrecompileCallFailed","inputs":[]},{"type":"error","name":"HKDFPrecompileCallFailed","inputs":[]},{"type":"error","name":"InvalidHKDFOutputLength","inputs":[{"name":"returnedLength","type":"uint256","internalType":"uint256"}]}],"bytecode":{"object":"0x61015661004d600b8282823980515f1a6073146041577f4e487b71000000000000000000000000000000000000000000000000000000005f525f60045260245ffd5b305f52607381538281f3fe73000000000000000000000000000000000000000030146080604052600436106046575f3560e01c8063727c346d14604a578063ad28a816146064578063baefa30714607e575b5f5ffd5b60506098565b604051605b919060e2565b60405180910390f35b606a609d565b6040516075919060e2565b60405180910390f35b608460a2565b604051608f919060e2565b60405180910390f35b606881565b606781565b606681565b5f73ffffffffffffffffffffffffffffffffffffffff82169050919050565b5f60ce8260a7565b9050919050565b60dc8160c6565b82525050565b5f60208201905060f35f83018460d5565b9291505056fea26469706673582212209e8b0d15149854bace7084c07add985d32525fb4f41de7fcab6f23f0ed97b01a64736f6c637829302e382e33312d646576656c6f702e323032352e31312e31322b636f6d6d69742e3637366264656363005a","sourceMap":"470:4316:0:-:0;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;","linkReferences":{}},"deployedBytecode":{"object":"0x73000000000000000000000000000000000000000030146080604052600436106046575f3560e01c8063727c346d14604a578063ad28a816146064578063baefa30714607e575b5f5ffd5b60506098565b604051605b919060e2565b60405180910390f35b606a609d565b6040516075919060e2565b60405180910390f35b608460a2565b604051608f919060e2565b60405180910390f35b606881565b606781565b606681565b5f73ffffffffffffffffffffffffffffffffffffffff82169050919050565b5f60ce8260a7565b9050919050565b60dc8160c6565b82525050565b5f60208201905060f35f83018460d5565b9291505056fea26469706673582212209e8b0d15149854bace7084c07add985d32525fb4f41de7fcab6f23f0ed97b01a64736f6c637829302e382e33312d646576656c6f702e323032352e31312e31322b636f6d6d69742e3637366264656363005a","sourceMap":"470:4316:0:-:0;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;1096:55;;;:::i;:::-;;;;;;;:::i;:::-;;;;;;;;939:58;;;:::i;:::-;;;;;;;:::i;:::-;;;;;;;;787;;;:::i;:::-;;;;;;;:::i;:::-;;;;;;;;1096:55;1146:4;1096:55;:::o;939:58::-;992:4;939:58;:::o;787:::-;840:4;787:58;:::o;7:126:24:-;44:7;84:42;77:5;73:54;62:65;;7:126;;;:::o;139:96::-;176:7;205:24;223:5;205:24;:::i;:::-;194:35;;139:96;;;:::o;241:126::-;336:24;354:5;336:24;:::i;:::-;331:3;324:37;241:126;;:::o;373:238::-;474:4;512:2;501:9;497:18;489:26;;525:79;601:1;590:9;586:17;577:6;525:79;:::i;:::-;373:238;;;;:::o","linkReferences":{}},"methodIdentifiers":{"AES_DEC_PRECOMPILE()":"ad28a816","AES_ENC_PRECOMPILE()":"baefa307","HKDF_PRECOMPILE()":"727c346d"},"rawMetadata":"{\"compiler\":{\"version\":\"0.8.31-develop.2025.11.12+commit.676bdecc\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[],\"name\":\"AESPrecompileCallFailed\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"HKDFPrecompileCallFailed\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"returnedLength\",\"type\":\"uint256\"}],\"name\":\"InvalidHKDFOutputLength\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"AES_DEC_PRECOMPILE\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"AES_ENC_PRECOMPILE\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"HKDF_PRECOMPILE\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"details\":\"It includes three constants referencing the addresses of the precompiled      contracts:        > AES_ENC_PRECOMPILE (encryption),        > AES_DEC_PRECOMPILE (decryption),        > HKDF_PRECOMPILE (key derivation).\",\"errors\":{\"AESPrecompileCallFailed()\":[{\"details\":\"Custom errors for more gas-efficient reverts.\"}]},\"kind\":\"dev\",\"methods\":{},\"title\":\"AesLib\",\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{\"AES_DEC_PRECOMPILE()\":{\"notice\":\"The address of the AES decryption precompiled contract.\"},\"AES_ENC_PRECOMPILE()\":{\"notice\":\"The address of the AES encryption precompiled contract.\"},\"HKDF_PRECOMPILE()\":{\"notice\":\"The address of the HKDF key derivation precompiled contract.\"}},\"notice\":\"This library provides functions to interact with AES-256-GCM         encryption/decryption and HKDF key derivation precompiled contracts.\",\"version\":1}},\"settings\":{\"compilationTarget\":{\"lib/AesLib.sol\":\"AesLib\"},\"evmVersion\":\"mercury\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[\":ds-test/=lib/ds-test/src/\",\":forge-std/=lib/forge-std/src/\",\":solmate/=lib/solmate/src/\"]},\"sources\":{\"lib/AesLib.sol\":{\"keccak256\":\"0x0ae17ef48ccfe4ce893e22e47e067023ff9ce3fcaf31c7920f55fd92c73455e7\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://a532415ee0dcbd32f333105bb92e61ff25a0b4fb24d6408fc91e47e1c4958202\",\"dweb:/ipfs/QmRhn77oo8iq7375Nnr5A2hDgms19gZFaL7zqgpZeXTTjK\"]}},\"version\":1}","metadata":{"compiler":{"version":"0.8.31-develop.2025.11.12+commit.676bdecc"},"language":"Solidity","output":{"abi":[{"inputs":[],"type":"error","name":"AESPrecompileCallFailed"},{"inputs":[],"type":"error","name":"HKDFPrecompileCallFailed"},{"inputs":[{"internalType":"uint256","name":"returnedLength","type":"uint256"}],"type":"error","name":"InvalidHKDFOutputLength"},{"inputs":[],"stateMutability":"view","type":"function","name":"AES_DEC_PRECOMPILE","outputs":[{"internalType":"address","name":"","type":"address"}]},{"inputs":[],"stateMutability":"view","type":"function","name":"AES_ENC_PRECOMPILE","outputs":[{"internalType":"address","name":"","type":"address"}]},{"inputs":[],"stateMutability":"view","type":"function","name":"HKDF_PRECOMPILE","outputs":[{"internalType":"address","name":"","type":"address"}]}],"devdoc":{"kind":"dev","methods":{},"version":1},"userdoc":{"kind":"user","methods":{"AES_DEC_PRECOMPILE()":{"notice":"The address of the AES decryption precompiled contract."},"AES_ENC_PRECOMPILE()":{"notice":"The address of the AES encryption precompiled contract."},"HKDF_PRECOMPILE()":{"notice":"The address of the HKDF key derivation precompiled contract."}},"version":1}},"settings":{"remappings":["ds-test/=lib/ds-test/src/","forge-std/=lib/forge-std/src/","solmate/=lib/solmate/src/"],"optimizer":{"enabled":false,"runs":200},"metadata":{"bytecodeHash":"ipfs"},"compilationTarget":{"lib/AesLib.sol":"AesLib"},"evmVersion":"mercury","libraries":{}},"sources":{"lib/AesLib.sol":{"keccak256":"0x0ae17ef48ccfe4ce893e22e47e067023ff9ce3fcaf31c7920f55fd92c73455e7","urls":["bzz-raw://a532415ee0dcbd32f333105bb92e61ff25a0b4fb24d6408fc91e47e1c4958202","dweb:/ipfs/QmRhn77oo8iq7375Nnr5A2hDgms19gZFaL7zqgpZeXTTjK"],"license":"MIT"}},"version":1},"id":0}
+{
+  "abi": [
+    {
+      "type": "function",
+      "name": "AES_DEC_PRECOMPILE",
+      "inputs": [],
+      "outputs": [{ "name": "", "type": "address", "internalType": "address" }],
+      "stateMutability": "view"
+    },
+    {
+      "type": "function",
+      "name": "AES_ENC_PRECOMPILE",
+      "inputs": [],
+      "outputs": [{ "name": "", "type": "address", "internalType": "address" }],
+      "stateMutability": "view"
+    },
+    {
+      "type": "function",
+      "name": "HKDF_PRECOMPILE",
+      "inputs": [],
+      "outputs": [{ "name": "", "type": "address", "internalType": "address" }],
+      "stateMutability": "view"
+    },
+    { "type": "error", "name": "AESPrecompileCallFailed", "inputs": [] },
+    { "type": "error", "name": "HKDFPrecompileCallFailed", "inputs": [] },
+    {
+      "type": "error",
+      "name": "InvalidHKDFOutputLength",
+      "inputs": [
+        {
+          "name": "returnedLength",
+          "type": "uint256",
+          "internalType": "uint256"
+        }
+      ]
+    }
+  ],
+  "bytecode": {
+    "object": "0x61015661004d600b8282823980515f1a6073146041577f4e487b71000000000000000000000000000000000000000000000000000000005f525f60045260245ffd5b305f52607381538281f3fe73000000000000000000000000000000000000000030146080604052600436106046575f3560e01c8063727c346d14604a578063ad28a816146064578063baefa30714607e575b5f5ffd5b60506098565b604051605b919060e2565b60405180910390f35b606a609d565b6040516075919060e2565b60405180910390f35b608460a2565b604051608f919060e2565b60405180910390f35b606881565b606781565b606681565b5f73ffffffffffffffffffffffffffffffffffffffff82169050919050565b5f60ce8260a7565b9050919050565b60dc8160c6565b82525050565b5f60208201905060f35f83018460d5565b9291505056fea26469706673582212209e8b0d15149854bace7084c07add985d32525fb4f41de7fcab6f23f0ed97b01a64736f6c637829302e382e33312d646576656c6f702e323032352e31312e31322b636f6d6d69742e3637366264656363005a",
+    "sourceMap": "470:4316:0:-:0;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;",
+    "linkReferences": {}
+  },
+  "deployedBytecode": {
+    "object": "0x73000000000000000000000000000000000000000030146080604052600436106046575f3560e01c8063727c346d14604a578063ad28a816146064578063baefa30714607e575b5f5ffd5b60506098565b604051605b919060e2565b60405180910390f35b606a609d565b6040516075919060e2565b60405180910390f35b608460a2565b604051608f919060e2565b60405180910390f35b606881565b606781565b606681565b5f73ffffffffffffffffffffffffffffffffffffffff82169050919050565b5f60ce8260a7565b9050919050565b60dc8160c6565b82525050565b5f60208201905060f35f83018460d5565b9291505056fea26469706673582212209e8b0d15149854bace7084c07add985d32525fb4f41de7fcab6f23f0ed97b01a64736f6c637829302e382e33312d646576656c6f702e323032352e31312e31322b636f6d6d69742e3637366264656363005a",
+    "sourceMap": "470:4316:0:-:0;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;1096:55;;;:::i;:::-;;;;;;;:::i;:::-;;;;;;;;939:58;;;:::i;:::-;;;;;;;:::i;:::-;;;;;;;;787;;;:::i;:::-;;;;;;;:::i;:::-;;;;;;;;1096:55;1146:4;1096:55;:::o;939:58::-;992:4;939:58;:::o;787:::-;840:4;787:58;:::o;7:126:24:-;44:7;84:42;77:5;73:54;62:65;;7:126;;;:::o;139:96::-;176:7;205:24;223:5;205:24;:::i;:::-;194:35;;139:96;;;:::o;241:126::-;336:24;354:5;336:24;:::i;:::-;331:3;324:37;241:126;;:::o;373:238::-;474:4;512:2;501:9;497:18;489:26;;525:79;601:1;590:9;586:17;577:6;525:79;:::i;:::-;373:238;;;;:::o",
+    "linkReferences": {}
+  },
+  "methodIdentifiers": {
+    "AES_DEC_PRECOMPILE()": "ad28a816",
+    "AES_ENC_PRECOMPILE()": "baefa307",
+    "HKDF_PRECOMPILE()": "727c346d"
+  },
+  "rawMetadata": "{\"compiler\":{\"version\":\"0.8.31-develop.2025.11.12+commit.676bdecc\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[],\"name\":\"AESPrecompileCallFailed\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"HKDFPrecompileCallFailed\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"returnedLength\",\"type\":\"uint256\"}],\"name\":\"InvalidHKDFOutputLength\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"AES_DEC_PRECOMPILE\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"AES_ENC_PRECOMPILE\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"HKDF_PRECOMPILE\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"details\":\"It includes three constants referencing the addresses of the precompiled      contracts:        > AES_ENC_PRECOMPILE (encryption),        > AES_DEC_PRECOMPILE (decryption),        > HKDF_PRECOMPILE (key derivation).\",\"errors\":{\"AESPrecompileCallFailed()\":[{\"details\":\"Custom errors for more gas-efficient reverts.\"}]},\"kind\":\"dev\",\"methods\":{},\"title\":\"AesLib\",\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{\"AES_DEC_PRECOMPILE()\":{\"notice\":\"The address of the AES decryption precompiled contract.\"},\"AES_ENC_PRECOMPILE()\":{\"notice\":\"The address of the AES encryption precompiled contract.\"},\"HKDF_PRECOMPILE()\":{\"notice\":\"The address of the HKDF key derivation precompiled contract.\"}},\"notice\":\"This library provides functions to interact with AES-256-GCM         encryption/decryption and HKDF key derivation precompiled contracts.\",\"version\":1}},\"settings\":{\"compilationTarget\":{\"lib/AesLib.sol\":\"AesLib\"},\"evmVersion\":\"mercury\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[\":ds-test/=lib/ds-test/src/\",\":forge-std/=lib/forge-std/src/\",\":solmate/=lib/solmate/src/\"]},\"sources\":{\"lib/AesLib.sol\":{\"keccak256\":\"0x0ae17ef48ccfe4ce893e22e47e067023ff9ce3fcaf31c7920f55fd92c73455e7\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://a532415ee0dcbd32f333105bb92e61ff25a0b4fb24d6408fc91e47e1c4958202\",\"dweb:/ipfs/QmRhn77oo8iq7375Nnr5A2hDgms19gZFaL7zqgpZeXTTjK\"]}},\"version\":1}",
+  "metadata": {
+    "compiler": { "version": "0.8.31-develop.2025.11.12+commit.676bdecc" },
+    "language": "Solidity",
+    "output": {
+      "abi": [
+        { "inputs": [], "type": "error", "name": "AESPrecompileCallFailed" },
+        { "inputs": [], "type": "error", "name": "HKDFPrecompileCallFailed" },
+        {
+          "inputs": [
+            {
+              "internalType": "uint256",
+              "name": "returnedLength",
+              "type": "uint256"
+            }
+          ],
+          "type": "error",
+          "name": "InvalidHKDFOutputLength"
+        },
+        {
+          "inputs": [],
+          "stateMutability": "view",
+          "type": "function",
+          "name": "AES_DEC_PRECOMPILE",
+          "outputs": [
+            { "internalType": "address", "name": "", "type": "address" }
+          ]
+        },
+        {
+          "inputs": [],
+          "stateMutability": "view",
+          "type": "function",
+          "name": "AES_ENC_PRECOMPILE",
+          "outputs": [
+            { "internalType": "address", "name": "", "type": "address" }
+          ]
+        },
+        {
+          "inputs": [],
+          "stateMutability": "view",
+          "type": "function",
+          "name": "HKDF_PRECOMPILE",
+          "outputs": [
+            { "internalType": "address", "name": "", "type": "address" }
+          ]
+        }
+      ],
+      "devdoc": { "kind": "dev", "methods": {}, "version": 1 },
+      "userdoc": {
+        "kind": "user",
+        "methods": {
+          "AES_DEC_PRECOMPILE()": {
+            "notice": "The address of the AES decryption precompiled contract."
+          },
+          "AES_ENC_PRECOMPILE()": {
+            "notice": "The address of the AES encryption precompiled contract."
+          },
+          "HKDF_PRECOMPILE()": {
+            "notice": "The address of the HKDF key derivation precompiled contract."
+          }
+        },
+        "version": 1
+      }
+    },
+    "settings": {
+      "remappings": [
+        "ds-test/=lib/ds-test/src/",
+        "forge-std/=lib/forge-std/src/",
+        "solmate/=lib/solmate/src/"
+      ],
+      "optimizer": { "enabled": false, "runs": 200 },
+      "metadata": { "bytecodeHash": "ipfs" },
+      "compilationTarget": { "lib/AesLib.sol": "AesLib" },
+      "evmVersion": "mercury",
+      "libraries": {}
+    },
+    "sources": {
+      "lib/AesLib.sol": {
+        "keccak256": "0x0ae17ef48ccfe4ce893e22e47e067023ff9ce3fcaf31c7920f55fd92c73455e7",
+        "urls": [
+          "bzz-raw://a532415ee0dcbd32f333105bb92e61ff25a0b4fb24d6408fc91e47e1c4958202",
+          "dweb:/ipfs/QmRhn77oo8iq7375Nnr5A2hDgms19gZFaL7zqgpZeXTTjK"
+        ],
+        "license": "MIT"
+      }
+    },
+    "version": 1
+  },
+  "id": 0
+}

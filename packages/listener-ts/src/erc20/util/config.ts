@@ -10,4 +10,3 @@ export function requireEnv(key: string): string {
   }
   return value;
 }
-

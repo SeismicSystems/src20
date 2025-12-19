@@ -28,7 +28,9 @@ export function attachWalletEventListener(
   return watchSRC20Events(client, {
     address: DeployOut.MockSRC20 as Address,
     onTransfer: (log: DecryptedTransferLog) => {
-      console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+      console.log(
+        "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+      );
       console.log(
         `${perspective} [SRC20] Transfer - ENCRYPTED (decrypted with AES key)\n`,
       );
@@ -41,7 +43,9 @@ export function attachWalletEventListener(
       );
     },
     onApproval: (log: DecryptedApprovalLog) => {
-      console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+      console.log(
+        "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+      );
       console.log(
         `${perspective} [SRC20] Approval - ENCRYPTED (decrypted with AES key)\n`,
       );
@@ -74,7 +78,9 @@ export function attachPublicEventListener(
   return watchSRC20EventsWithKey(client, viewingKey, {
     address: DeployOut.MockSRC20 as Address,
     onTransfer: (log: DecryptedTransferLog) => {
-      console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+      console.log(
+        "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+      );
       console.log(
         `${perspective} [SRC20] Transfer - ENCRYPTED (decrypted with AES key)\n`,
       );
@@ -87,7 +93,9 @@ export function attachPublicEventListener(
       );
     },
     onApproval: (log: DecryptedApprovalLog) => {
-      console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+      console.log(
+        "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+      );
       console.log(
         `${perspective} [SRC20] Approval - ENCRYPTED (decrypted with AES key)\n`,
       );
