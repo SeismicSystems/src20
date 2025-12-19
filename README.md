@@ -54,28 +54,6 @@ packages/
 
 ## Client-Side: viem vs seismic-viem
 
-### Chain Definition
-
-| Library                  | Function                                                                   | Code                                                                                                           |
-| ------------------------ | -------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
-| **viem** (ERC20)         | `defineChain({...})`                                                       | Manual chain definition with `id`, `name`, `rpcUrls`                                                           |
-| **seismic-viem** (SRC20) | [`createSeismicDevnet({...})`](https://client.seismic.systems/viem/chains) | [`createSeismicDevnet({ nodeHost: "lyron.seismicdev.net" })`](packages/sender-ts/src/src20/util/tx.ts#L14-L16) |
-
-```typescript
-// ERC20: Manual chain definition
-import { defineChain } from "viem";
-const chain = defineChain({
-  id: 5124,
-  name: "Seismic Devnet",
-  nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 },
-  rpcUrls: { default: { http: ["https://lyron.seismicdev.net/rpc"] } },
-});
-
-// SRC20: Use seismic-viem helper
-import { createSeismicDevnet } from "seismic-viem";
-const chain = createSeismicDevnet({ nodeHost: "lyron.seismicdev.net" });
-```
-
 ### Client Creation
 
 | Library                              | Client Type                                                                  | Code                                                                                    |
