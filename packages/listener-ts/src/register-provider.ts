@@ -2,8 +2,8 @@ import { createShieldedWalletClient, createSeismicDevnet } from "seismic-viem";
 import { http, encodeFunctionData, createWalletClient } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 
-const DIRECTORY_ADDRESS = "0x1000000000000000000000000000000000000004" as const;
-const INTELLIGENCE_ADDRESS = "0x1000000000000000000000000000000000000005" as const;
+const DIRECTORY_ADDRESS = "0xfd323feA82e93DF2aB57625b8980732aBBf5e4a7" as const;
+const INTELLIGENCE_ADDRESS = "0x47FD3881aef7B690313CB1562e91aCe42E7d3DA5" as const;
 
 // Use gcp-2 explicitly (same as your earlier tests)
 const chain = createSeismicDevnet({
@@ -81,8 +81,7 @@ async function main() {
   
   const addProviderTx = await nonshieldedClient.sendTransaction({
     to: INTELLIGENCE_ADDRESS,
-    functionName: "addProvider",
-    args: [account.address],
+    data: addProviderData,
     gas: 200000n,
   });
   console.log("   addProvider tx:", addProviderTx);
