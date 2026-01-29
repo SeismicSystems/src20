@@ -1,11 +1,17 @@
-import { createShieldedWalletClient, createSeismicDevnet } from "seismic-viem";
-import { http, createWalletClient, encodeFunctionData, encodeDeployData, parseAbi } from "viem";
+import { config } from "dotenv";
+import { createShieldedWalletClient, seismicTestnetGcp2, signedReadContract } from "seismic-viem";
+import { http, createWalletClient, encodeFunctionData, encodeDeployData, parseAbi, formatUnits } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
-import { readFileSync } from "fs";
-import { join } from "path";
+import { readFileSync, writeFileSync } from "fs";
+import { dirname, join } from "path";
+import { fileURLToPath } from "url";
 
-// Load contract artifacts
+const __dirname = dirname(fileURLToPath(import.meta.url));
 const contractsPath = join(__dirname, "../../contracts/out");
+
+// Load .env from contracts directory
+config({ path: join(__dirname, "../../contracts/.env") });
+const deployJsonPath = join(contractsPath, "deploy.json");
 const mockSRC20Artifact = JSON.parse(
   readFileSync(join(contractsPath, "MockSRC20.sol/MockSRC20.json"), "utf-8")
 );
@@ -13,12 +19,8 @@ const mockERC20Artifact = JSON.parse(
   readFileSync(join(contractsPath, "MockERC20.sol/MockERC20.json"), "utf-8")
 );
 
-// Use gcp-2
-const chain = createSeismicDevnet({
-  nodeHost: "gcp-2.seismictest.net",
-});
+const chain = seismicTestnetGcp2;
 
-// ABI for mint functions
 const SRC20MintAbi = [
   {
     type: "function",
@@ -29,6 +31,16 @@ const SRC20MintAbi = [
     ],
     outputs: [],
     stateMutability: "nonpayable",
+  },
+] as const;
+
+const SRC20BalanceAbi = [
+  {
+    type: "function",
+    name: "balance",
+    inputs: [],
+    outputs: [{ name: "", type: "uint256" }],
+    stateMutability: "view",
   },
 ] as const;
 
@@ -46,44 +58,32 @@ async function main() {
     throw new Error("Missing DEPLOYER_PRIVATE_KEY in environment");
   }
 
-  const account = privateKeyToAccount(deployerPrivateKey as `0x${string}`);
-  console.log("Deployer address:", account.address);
+  const deployerAccount = privateKeyToAccount(deployerPrivateKey as `0x${string}`);
+  const aliceAccount = alicePrivateKey ? privateKeyToAccount(alicePrivateKey as `0x${string}`) : null;
+  const bobAccount = bobPrivateKey ? privateKeyToAccount(bobPrivateKey as `0x${string}`) : null;
+  const charlieAccount = charliePrivateKey ? privateKeyToAccount(charliePrivateKey as `0x${string}`) : null;
 
-  // Derive addresses from private keys
-  const alice = alicePrivateKey
-    ? privateKeyToAccount(alicePrivateKey as `0x${string}`).address
-    : account.address;
-  const bob = bobPrivateKey
-    ? privateKeyToAccount(bobPrivateKey as `0x${string}`).address
-    : account.address;
-  const charlie = charliePrivateKey
-    ? privateKeyToAccount(charliePrivateKey as `0x${string}`).address
-    : account.address;
+  console.log("Deployer:", deployerAccount.address);
+  if (aliceAccount) console.log("Alice:", aliceAccount.address);
+  if (bobAccount) console.log("Bob:", bobAccount.address);
+  if (charlieAccount) console.log("Charlie:", charlieAccount.address);
 
-  console.log("Alice:", alice);
-  console.log("Bob:", bob);
-  console.log("Charlie:", charlie);
-
-  // Create clients
   const shieldedClient = await createShieldedWalletClient({
     chain,
-    account,
+    account: deployerAccount,
     transport: http(),
   });
 
   const client = createWalletClient({
     chain,
-    account,
+    account: deployerAccount,
     transport: http(),
   });
 
-  const MINT_AMOUNT = 2n * 10n ** 27n; // 2e27
+  const MINT_AMOUNT = 2n * 10n ** 27n;
 
-  // ============================================
-  // Deploy MockSRC20 (Confidential Token)
-  // ============================================
-  console.log("\n📦 Deploying MockSRC20...");
-
+  // Deploy MockSRC20
+  console.log("\nDeploying MockSRC20...");
   const src20DeployData = encodeDeployData({
     abi: mockSRC20Artifact.abi,
     bytecode: mockSRC20Artifact.bytecode.object as `0x${string}`,
@@ -94,19 +94,23 @@ async function main() {
     data: src20DeployData,
     gas: 5000000n,
   });
-  console.log("   Deploy tx:", src20DeployTx);
+  console.log("  tx:", src20DeployTx);
 
   const src20Receipt = await shieldedClient.waitForTransactionReceipt({
     hash: src20DeployTx,
   });
   const src20Address = src20Receipt.contractAddress!;
-  console.log("   ✅ MockSRC20 deployed at:", src20Address);
+  console.log("  MockSRC20 deployed at:", src20Address);
 
-  // Mint to alice, bob, charlie (uses suint256 - needs shielded client)
-  console.log("\n🪙 Minting SRC20 tokens...");
+  // Mint SRC20 tokens
+  const mintTargets = [
+    ["alice", aliceAccount?.address ?? deployerAccount.address],
+    ["bob", bobAccount?.address ?? deployerAccount.address],
+    ["charlie", charlieAccount?.address ?? deployerAccount.address],
+  ] as const;
 
-  for (const [name, addr] of [["alice", alice], ["bob", bob], ["charlie", charlie]] as const) {
-    console.log(`   Minting to ${name} (${addr})...`);
+  console.log("\nMinting SRC20 tokens...");
+  for (const [name, addr] of mintTargets) {
     const mintTx = await shieldedClient.writeContract({
       address: src20Address,
       abi: SRC20MintAbi,
@@ -115,14 +119,11 @@ async function main() {
       gas: 500000n,
     });
     await shieldedClient.waitForTransactionReceipt({ hash: mintTx });
-    console.log(`   ✅ Minted to ${name}`);
+    console.log(`  Minted to ${name}`);
   }
 
-  // ============================================
-  // Deploy MockERC20 (Standard Token)
-  // ============================================
-  console.log("\n📦 Deploying MockERC20...");
-
+  // Deploy MockERC20
+  console.log("\nDeploying MockERC20...");
   const erc20DeployData = encodeDeployData({
     abi: mockERC20Artifact.abi,
     bytecode: mockERC20Artifact.bytecode.object as `0x${string}`,
@@ -133,19 +134,17 @@ async function main() {
     data: erc20DeployData,
     gas: 3000000n,
   });
-  console.log("   Deploy tx:", erc20DeployTx);
+  console.log("  tx:", erc20DeployTx);
 
   const erc20Receipt = await shieldedClient.waitForTransactionReceipt({
     hash: erc20DeployTx,
   });
   const erc20Address = erc20Receipt.contractAddress!;
-  console.log("   ✅ MockERC20 deployed at:", erc20Address);
+  console.log("  MockERC20 deployed at:", erc20Address);
 
-  // Mint to alice, bob, charlie (regular uint256)
-  console.log("\n🪙 Minting ERC20 tokens...");
-
-  for (const [name, addr] of [["alice", alice], ["bob", bob], ["charlie", charlie]] as const) {
-    console.log(`   Minting to ${name} (${addr})...`);
+  // Mint ERC20 tokens
+  console.log("\nMinting ERC20 tokens...");
+  for (const [name, addr] of mintTargets) {
     const mintData = encodeFunctionData({
       abi: ERC20MintAbi,
       functionName: "mint",
@@ -157,14 +156,51 @@ async function main() {
       gas: 100000n,
     });
     await shieldedClient.waitForTransactionReceipt({ hash: mintTx });
-    console.log(`   ✅ Minted to ${name}`);
+    console.log(`  Minted to ${name}`);
   }
 
-  // ============================================
+  // Verify balances using signed reads
+  console.log("\nVerifying SRC20 balances (signed reads)...");
+  
+  const userClients = [
+    { name: "alice", account: aliceAccount },
+    { name: "bob", account: bobAccount },
+    { name: "charlie", account: charlieAccount },
+  ];
+
+  for (const { name, account } of userClients) {
+    if (!account) {
+      console.log(`  ${name}: skipped (no private key)`);
+      continue;
+    }
+
+    const userClient = await createShieldedWalletClient({
+      chain,
+      account,
+      transport: http(),
+    });
+
+    const balance = await signedReadContract(userClient, {
+      abi: SRC20BalanceAbi,
+      address: src20Address,
+      functionName: "balance",
+      args: [],
+    });
+
+    console.log(`  ${name}: ${formatUnits(balance as bigint, 18)} cTKN`);
+  }
+
+  // Write addresses to deploy.json
+  const deployOutput = {
+    MockSRC20: src20Address,
+    MockERC20: erc20Address,
+  };
+  writeFileSync(deployJsonPath, JSON.stringify(deployOutput, null, 2));
+  console.log("\nWrote addresses to:", deployJsonPath);
+
   // Summary
-  // ============================================
   console.log("\n" + "=".repeat(50));
-  console.log("🎉 Deployment Complete!");
+  console.log("Deployment Complete!");
   console.log("=".repeat(50));
   console.log("MockSRC20 (cTKN):", src20Address);
   console.log("MockERC20 (sTKN):", erc20Address);

@@ -10,6 +10,7 @@
     "typescript": "^5"
   },
   "scripts": {
+    "deploy": "bun src/deploy.ts",
     "dev:src20": "bun src/src20/index.ts",
     "dev:erc20": "bun src/erc20/index.ts",
     "dev": "bun src/src20/index.ts",
@@ -19,7 +20,7 @@
     "dotenv": "^17.2.2",
     "ethers": "^6.15.0",
     "prettier": "^3.7.4",
-    "seismic-viem": "1.1.0",
+    "seismic-viem": "^1.1.0",
     "viem": "^2.37.6"
   }
 }

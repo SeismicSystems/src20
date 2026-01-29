@@ -7,7 +7,7 @@ if [ "$MODE" == "local" ]; then
     RPC_URL=http://127.0.0.1:8545
     CHAIN_ID=31337
 else
-    RPC_URL=https://lyron.seismicdev.net/rpc
+    RPC_URL=https://gcp-2.seismictest.net/rpc
     CHAIN_ID=5124
 fi
 BROADCAST_OUT=./broadcast/Deploy.s.sol/$CHAIN_ID/run-latest.json

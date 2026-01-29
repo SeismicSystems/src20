@@ -7,6 +7,7 @@
     "packages/sender-ts"
   ],
   "scripts": {
+    "deploy:new": "bun run --cwd packages/listener-ts deploy",
     "deploy": "cd packages/contracts && ./script/deploy.sh",
     "sender:src20": "bun run --cwd packages/sender-ts dev:src20",
     "sender:erc20": "bun run --cwd packages/sender-ts dev:erc20",
