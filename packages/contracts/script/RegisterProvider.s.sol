@@ -15,8 +15,8 @@ interface IIntelligence {
 }
 
 contract RegisterProvider is Script {
-    address public constant DIRECTORY_ADDRESS = address(0x1000000000000000000000000000000000000004);
-    address public constant INTELLIGENCE_ADDRESS = address(0x1000000000000000000000000000000000000005);
+    address public constant DIRECTORY_ADDRESS = address(0xfd323feA82e93DF2aB57625b8980732aBBf5e4a7);
+    address public constant INTELLIGENCE_ADDRESS = address(0x47FD3881aef7B690313CB1562e91aCe42E7d3DA5);
 
     function run() public {
         uint256 deployerPrivkey = vm.envUint("DEPLOYER_PRIVATE_KEY");
