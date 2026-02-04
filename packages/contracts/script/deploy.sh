@@ -14,11 +14,13 @@ BROADCAST_OUT=./broadcast/Deploy.s.sol/$CHAIN_ID/run-latest.json
 
 sforge script script/Fund.s.sol:Fund \
     --rpc-url $RPC_URL \
-    --broadcast
+    --broadcast \
+    --unsafe-private-storage
 
 sforge script script/Deploy.s.sol:Deploy \
     --rpc-url $RPC_URL \
-    --broadcast
+    --broadcast \
+    --unsafe-private-storage
 
 # Parse the broadcast output and create deploy.json using jq directly
 # This extracts all CREATE transactions and builds a JSON object
