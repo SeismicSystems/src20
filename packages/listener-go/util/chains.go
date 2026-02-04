@@ -12,5 +12,5 @@ var Sanvil = Chain{
 
 var IntegrationChain = Chain{
 	Name:   "Integration Chain",
-	RPCUrl: "wss://lyron.seismicdev.net/ws",
+	RPCUrl: "wss://gcp-1.seismictest.net/ws",
 }
