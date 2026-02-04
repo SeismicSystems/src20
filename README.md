@@ -258,11 +258,10 @@ All packages read from a `.env` file in `packages/contracts/`. See [`packages/co
 ### Terminal 1: Deploy Contracts
 
 ```bash
-cd packages/contracts
-bash script/deploy.sh
+bun run deploy
 ```
 
-This deploys both `MockSRC20` and `MockERC20` and writes their addresses to `out/deploy.json`.
+This deploys both `MockSRC20` and `MockERC20` and writes their addresses to `packages/contracts/out/deploy.json`.
 
 ### Terminal 2: SRC20 Sender
 
