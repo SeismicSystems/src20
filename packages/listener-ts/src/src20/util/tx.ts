@@ -3,15 +3,13 @@ import type { Account } from "viem/accounts";
 import {
   createShieldedWalletClient,
   getShieldedContract,
-  createSeismicDevnet,
+  seismicTestnetGcp1,
 } from "seismic-viem";
 
 import { SRC20Abi } from "./abi";
 import DeployOut from "../../../../contracts/out/deploy.json";
 
-export const integrationChain = createSeismicDevnet({
-  nodeHost: "lyron.seismicdev.net",
-});
+export const integrationChain = seismicTestnetGcp1;
 
 export async function createInterface(chain: Chain, account: Account) {
   const client = await createShieldedWalletClient({

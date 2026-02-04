@@ -7,10 +7,9 @@ import { createShieldedWalletClient, getShieldedContract } from "seismic-viem";
 import { SRC20Abi } from "./abi";
 import DeployOut from "../../../../contracts/out/deploy.json";
 import { logger } from "./logger";
+import { seismicTestnetGcp1 } from "seismic-viem";
 
-export const integrationChain = createSeismicDevnet({
-  nodeHost: "lyron.seismicdev.net",
-});
+export const integrationChain = seismicTestnetGcp1;
 
 // Type for the interface returned by createInterface (inferred from function)
 export type SRC20Interface = Awaited<ReturnType<typeof createInterface>>;

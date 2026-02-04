@@ -8,6 +8,7 @@ import {
   type PublicClient,
 } from "viem";
 import type { Account } from "viem/accounts";
+import { seismicTestnetGcp1 } from "seismic-viem";
 
 // Standard viem imports - NO seismic-viem needed for ERC20
 import { ERC20Abi } from "./abi";
@@ -22,12 +23,7 @@ export const localChain = defineChain({
   rpcUrls: { default: { http: ["http://127.0.0.1:8545"] } },
 });
 
-export const integrationChain = defineChain({
-  id: 5124,
-  name: "Seismic Devnet",
-  nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 },
-  rpcUrls: { default: { http: ["https://lyron.seismicdev.net/rpc"] } },
-});
+export const integrationChain = seismicTestnetGcp1;
 
 // Type for the interface returned by createInterface
 export type ERC20Interface = ReturnType<typeof createInterface>;
