@@ -85,7 +85,6 @@ async function main() {
   );
   console.log(`Individual reads: ${individual.duration}ms`);
 
-  // Display comprehensive results
   const results: ComparisonResults = {
     individual,
     interfaceBatch,
