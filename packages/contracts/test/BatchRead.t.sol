@@ -141,4 +141,70 @@ contract BatchReadTest is DSTestPlus {
         hevm.expectRevert("signature expired");
         tokens[0].balanceOfSigned(user, expiry, sig);
     }
+
+    // --- Test interface batch vs staticcall batch consistency ---
+
+    function test_batchMethodsConsistency() public {
+        uint256 expiry = block.timestamp + 1 hours;
+        bytes memory sig = _signBalanceRead(USER_PRIVATE_KEY, user, expiry);
+
+        // Get results from both batch methods
+        uint256[] memory interfaceResults = multicall.batchBalancesInterface(user, _tokenAddresses(), expiry, sig);
+        uint256[] memory staticcallResults = multicall.batchBalances(user, _tokenAddresses(), expiry, sig);
+
+        // Should have same length
+        assertEq(interfaceResults.length, staticcallResults.length);
+        assertEq(interfaceResults.length, NUM_TOKENS);
+
+        // All balances should match
+        for (uint256 i = 0; i < NUM_TOKENS; i++) {
+            assertEq(interfaceResults[i], staticcallResults[i]);
+            assertEq(interfaceResults[i], (i + 1) * 1e18);
+        }
+    }
+
+    // --- Test detailed staticcall results ---
+
+    function test_batchBalancesDetailed() public {
+        uint256 expiry = block.timestamp + 1 hours;
+        bytes memory sig = _signBalanceRead(USER_PRIVATE_KEY, user, expiry);
+
+        SRC20Multicall.BalanceResult[] memory results = multicall.batchBalancesDetailed(user, _tokenAddresses(), expiry, sig);
+
+        assertEq(results.length, NUM_TOKENS);
+
+        for (uint256 i = 0; i < NUM_TOKENS; i++) {
+            assertTrue(results[i].success);
+            assertEq(results[i].token, address(tokens[i]));
+            assertEq(results[i].balance, (i + 1) * 1e18);
+        }
+    }
+
+    // --- Test staticcall error handling ---
+
+    function test_staticcallErrorHandling() public {
+        uint256 expiry = block.timestamp + 1 hours;
+        bytes memory sig = _signBalanceRead(USER_PRIVATE_KEY, user, expiry);
+
+        // Create array with expired signature for second call
+        address[] memory testTokens = new address[](2);
+        testTokens[0] = address(tokens[0]);
+        testTokens[1] = address(tokens[1]);
+
+        // Test with expired signature
+        hevm.warp(expiry + 1); // Move past expiry
+        
+        // Detailed version should not revert, but show failure
+        SRC20Multicall.BalanceResult[] memory results = multicall.batchBalancesDetailed(user, testTokens, expiry, sig);
+        
+        assertEq(results.length, 2);
+        assertFalse(results[0].success); // Should fail due to expired signature
+        assertFalse(results[1].success); // Should fail due to expired signature
+        assertEq(results[0].balance, 0);
+        assertEq(results[1].balance, 0);
+
+        // Regular staticcall version should revert on failure
+        hevm.expectRevert();
+        multicall.batchBalances(user, testTokens, expiry, sig);
+    }
 }

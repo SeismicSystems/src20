@@ -1,0 +1,1 @@
+{"id":"f15dd53fe206ad30","source_id_to_path":{"0":"lib/ds-test/src/test.sol","1":"lib/solmate/src/tokens/ERC20.sol","2":"src/SRC20.sol","3":"src/SRC20Multicall.sol","4":"src/interfaces/ISRC20.sol","5":"test/BatchRead.t.sol","6":"test/utils/DSTestPlus.sol","7":"test/utils/Hevm.sol"},"language":"Solidity"}
