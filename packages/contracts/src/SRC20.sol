@@ -230,11 +230,12 @@ abstract contract SRC20 {
 
     /// @notice Read any user's balance with their signature authorization.
     /// @dev Signature is token-agnostic: uses personal sign over ("SRC20_BALANCE_READ", owner, expiry).
-    function balanceOfSigned(
-        address owner,
-        uint256 expiry,
-        bytes calldata signature
-    ) external view virtual returns (uint256) {
+    function balanceOfSigned(address owner, uint256 expiry, bytes calldata signature)
+        external
+        view
+        virtual
+        returns (uint256)
+    {
         require(block.timestamp <= expiry, "signature expired");
         require(signature.length == 65, "invalid signature length");
 

@@ -6,9 +6,7 @@ import {SRC20} from "../src/SRC20.sol";
 import {SRC20Multicall} from "../src/SRC20Multicall.sol";
 
 contract TestSRC20 is SRC20 {
-    constructor(string memory _name, string memory _symbol, uint8 _decimals)
-        SRC20(_name, _symbol, _decimals)
-    {}
+    constructor(string memory _name, string memory _symbol, uint8 _decimals) SRC20(_name, _symbol, _decimals) {}
 
     function mint(address to, uint256 amount) public {
         _mint(to, suint256(amount));
@@ -48,17 +46,12 @@ contract BatchReadTest is DSTestPlus {
         }
     }
 
-    function _signBalanceRead(uint256 privateKey, address owner, uint256 expiry)
-        internal
-        returns (bytes memory)
-    {
+    function _signBalanceRead(uint256 privateKey, address owner, uint256 expiry) internal returns (bytes memory) {
         bytes32 messageHash = keccak256(abi.encodePacked("SRC20_BALANCE_READ", owner, expiry));
         bytes32 ethSignedHash = keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", messageHash));
         (uint8 v, bytes32 r, bytes32 s) = hevm.sign(privateKey, ethSignedHash);
         return abi.encodePacked(r, s, v);
     }
-
-    // --- Single token signed read ---
 
     function test_singleSignedRead() public {
         uint256 expiry = block.timestamp + 1 hours;
@@ -67,8 +60,6 @@ contract BatchReadTest is DSTestPlus {
         uint256 bal = tokens[0].balanceOfSigned(user, expiry, sig);
         assertEq(bal, 1e18);
     }
-
-    // --- Batch read of 10 tokens ---
 
     function test_batchReadTenTokens() public {
         uint256 expiry = block.timestamp + 1 hours;
@@ -82,8 +73,6 @@ contract BatchReadTest is DSTestPlus {
         }
     }
 
-    // --- Expired signature reverts ---
-
     function test_revertExpiredSignature() public {
         uint256 expiry = block.timestamp + 1 hours;
         bytes memory sig = _signBalanceRead(USER_PRIVATE_KEY, user, expiry);
@@ -95,8 +84,6 @@ contract BatchReadTest is DSTestPlus {
         tokens[0].balanceOfSigned(user, expiry, sig);
     }
 
-    // --- Invalid signature reverts ---
-
     function test_revertInvalidSignature() public {
         uint256 expiry = block.timestamp + 1 hours;
         uint256 wrongKey = 0xDEAD;
@@ -106,14 +93,10 @@ contract BatchReadTest is DSTestPlus {
         tokens[0].balanceOfSigned(user, expiry, sig);
     }
 
-    // --- Self read still works ---
-
     function test_selfBalanceRead() public {
         hevm.prank(user);
         assertEq(tokens[0].balance(), 1e18);
     }
-
-    // --- Signature reuse until expiry ---
 
     function test_signatureReuse() public {
         uint256 expiry = block.timestamp + 1 hours;
@@ -125,8 +108,7 @@ contract BatchReadTest is DSTestPlus {
         assertEq(tokens[9].balanceOfSigned(user, expiry, sig), 10e18);
     }
 
-    // --- Expiry boundary (timestamp == expiry is valid) ---
-
+    // timestamp == expiry is valid
     function test_expiryBoundary() public {
         uint256 expiry = block.timestamp + 1 hours;
         bytes memory sig = _signBalanceRead(USER_PRIVATE_KEY, user, expiry);
@@ -141,8 +123,6 @@ contract BatchReadTest is DSTestPlus {
         hevm.expectRevert("signature expired");
         tokens[0].balanceOfSigned(user, expiry, sig);
     }
-
-    // --- Test interface batch vs staticcall batch consistency ---
 
     function test_batchMethodsConsistency() public {
         uint256 expiry = block.timestamp + 1 hours;
@@ -163,13 +143,12 @@ contract BatchReadTest is DSTestPlus {
         }
     }
 
-    // --- Test detailed staticcall results ---
-
     function test_batchBalancesDetailed() public {
         uint256 expiry = block.timestamp + 1 hours;
         bytes memory sig = _signBalanceRead(USER_PRIVATE_KEY, user, expiry);
 
-        SRC20Multicall.BalanceResult[] memory results = multicall.batchBalancesDetailed(user, _tokenAddresses(), expiry, sig);
+        SRC20Multicall.BalanceResult[] memory results =
+            multicall.batchBalancesDetailed(user, _tokenAddresses(), expiry, sig);
 
         assertEq(results.length, NUM_TOKENS);
 
@@ -179,8 +158,6 @@ contract BatchReadTest is DSTestPlus {
             assertEq(results[i].balance, (i + 1) * 1e18);
         }
     }
-
-    // --- Test staticcall error handling ---
 
     function test_staticcallErrorHandling() public {
         uint256 expiry = block.timestamp + 1 hours;
@@ -193,17 +170,16 @@ contract BatchReadTest is DSTestPlus {
 
         // Test with expired signature
         hevm.warp(expiry + 1); // Move past expiry
-        
+
         // Detailed version should not revert, but show failure
         SRC20Multicall.BalanceResult[] memory results = multicall.batchBalancesDetailed(user, testTokens, expiry, sig);
-        
+
         assertEq(results.length, 2);
         assertFalse(results[0].success); // Should fail due to expired signature
         assertFalse(results[1].success); // Should fail due to expired signature
         assertEq(results[0].balance, 0);
         assertEq(results[1].balance, 0);
 
-        // Regular staticcall version should revert on failure
         hevm.expectRevert();
         multicall.batchBalances(user, testTokens, expiry, sig);
     }
