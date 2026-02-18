@@ -225,6 +225,39 @@ abstract contract SRC20 {
     }
 
     /*//////////////////////////////////////////////////////////////
+                        SIGNED BALANCE READ
+    //////////////////////////////////////////////////////////////*/
+
+    /// @notice Read any user's balance with their signature authorization.
+    /// @dev Signature is token-agnostic: uses personal sign over ("SRC20_BALANCE_READ", owner, expiry).
+    function balanceOfSigned(address owner, uint256 expiry, bytes calldata signature)
+        external
+        view
+        virtual
+        returns (uint256)
+    {
+        require(block.timestamp <= expiry, "signature expired");
+        require(signature.length == 65, "invalid signature length");
+
+        bytes32 messageHash = keccak256(abi.encodePacked("SRC20_BALANCE_READ", owner, expiry));
+        bytes32 ethSignedHash = keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", messageHash));
+
+        bytes32 r;
+        bytes32 s;
+        uint8 v;
+        assembly {
+            r := calldataload(signature.offset)
+            s := calldataload(add(signature.offset, 32))
+            v := byte(0, calldataload(add(signature.offset, 64)))
+        }
+
+        address signer = ecrecover(ethSignedHash, v, r, s);
+        require(signer != address(0) && signer == owner, "invalid signature");
+
+        return uint256(balances[owner]);
+    }
+
+    /*//////////////////////////////////////////////////////////////
                            READ FUNCTIONS
     //////////////////////////////////////////////////////////////*/
 

@@ -429,6 +429,10 @@ contract SRC20Test is DSTestPlus {
     }
 
     function test_RevertIfPermitPastDeadline(uint256 privateKey, address to, uint256 amount, uint256 deadline) public {
+        // Ensure block.timestamp > 0 to avoid underflow
+        if (block.timestamp == 0) {
+            hevm.warp(1);
+        }
         deadline = bound(deadline, 0, block.timestamp - 1);
         privateKey = boundPrivateKey(privateKey);
 

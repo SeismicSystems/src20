@@ -6,13 +6,14 @@ This repository demonstrates the differences between standard ERC20 tokens and S
 
 ```bash
 packages/
-├── contracts/           # Solidity contracts (SRC20 + ERC20)
+├── contracts/           # Solidity contracts (SRC20 + ERC20 + Multicall)
 ├── listener-ts/
 │   ├── src/erc20/       # ERC20 listener (standard viem)
 │   └── src/src20/       # SRC20 listener (seismic-viem)
 ├── sender-ts/
 │   ├── src/erc20/       # ERC20 sender (standard viem)
 │   └── src/src20/       # SRC20 sender (seismic-viem)
+├── batch-read-ts/       # SRC20 batch balance reader (multicall demo)
 └── listener-go/         # Go listener (SRC20 only)
 ```
 
@@ -392,13 +393,15 @@ bun dev:src20 -- --recipient --no-prompt
 
 ## Available Scripts
 
-| Script                   | Description                            |
-| ------------------------ | -------------------------------------- |
-| `bun run deploy`         | Deploy both ERC20 and SRC20 contracts  |
-| `bun run sender:src20`   | Run SRC20 sender (encrypted amounts)   |
-| `bun run sender:erc20`   | Run ERC20 sender (plaintext amounts)   |
-| `bun run listener:src20` | Run SRC20 listener (intelligence mode) |
-| `bun run listener:erc20` | Run ERC20 listener (plaintext events)  |
+| Script                     | Description                              |
+| -------------------------- | ---------------------------------------- |
+| `bun run deploy`           | Deploy both ERC20 and SRC20 contracts   |
+| `bun run deploy:batch-read`| Deploy multicall + 50 tokens for batch demo |
+| `bun run sender:src20`     | Run SRC20 sender (encrypted amounts)    |
+| `bun run sender:erc20`     | Run ERC20 sender (plaintext amounts)    |
+| `bun run listener:src20`   | Run SRC20 listener (intelligence mode)  |
+| `bun run listener:erc20`   | Run ERC20 listener (plaintext events)   |
+| `bun run batch-read`       | Run batch balance reading demo           |
 
 ---
 
@@ -433,4 +436,29 @@ go run ./
     from: 0xAlice...
     to: 0xBob...
     amount: 42 (decrypted from encrypted bytes)
+```
+
+---
+
+## Batch Balance Reading
+
+For efficient reading of multiple SRC20 token balances, this repository includes a multicall implementation that demonstrates significant performance improvements:
+
+### Performance Comparison
+
+| Approach           | 50 Tokens | Speedup |
+| ------------------ | --------- | ------- |
+| Individual reads   | ~76s      | 1x      |
+| Interface batch    | ~2.3s     | 33x     |
+| Staticcall batch   | ~1.4s     | 55x     |
+| RPC batch calls    | ~2.2s     | 35x     |
+
+### Usage
+
+```bash
+# Deploy multicall contracts and 50 test tokens
+bun run deploy:batch-read
+
+# Run batch balance comparison
+bun run batch-read
 ```
