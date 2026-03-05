@@ -43,6 +43,16 @@ packages/
 
 **Key difference:** SRC20 events emit **encrypted amounts** with a key hash identifier, allowing only authorized parties to decrypt.
 
+### Approvals: Privacy Caveat
+
+SRC20 inherits the ERC20 "unlimited approval" optimization: if a user approves `type(suint256).max`, `transferFrom` skips the allowance deduction to save gas. However, this branches on a shielded value (`if (allowed != type(suint256).max)`), which **leaks whether an approval is unlimited or limited** through observable execution patterns.
+
+Specifically, the two code paths differ in gas cost, state writes, and execution trace length. An observer can distinguish between:
+- **Unlimited approval** (`type(suint256).max`): the branch is skipped, no storage write to update the allowance
+- **Limited approval** (any other value): the branch executes, performs a subtraction, and writes the updated allowance back to storage
+
+This reveals a single bit of information — unlimited vs. limited — but does **not** reveal the actual approval amount. The compiler emits Warning 5765 for this pattern. A fully branchless alternative (e.g., always deducting and re-storing the allowance) would eliminate the leak at the cost of higher gas for unlimited approvals. This tradeoff is preserved intentionally for ERC20 compatibility.
+
 ### Storage Types
 
 | Storage      | ERC20                                             | SRC20                                              |
@@ -243,6 +253,7 @@ interface IIntelligence {
 **Purpose:** Intelligence providers (e.g., compliance services, analytics) can be granted access to decrypt all transaction amounts for regulatory or monitoring purposes.
 
 ---
+
 
 ## Prerequisites
 
