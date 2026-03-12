@@ -7,6 +7,7 @@ For detailed architecture, API comparisons (ERC20 vs SRC20), event encryption fl
 ## Build & Run
 
 - Install: `bun install:all` from repo root
+- Install Solidity deps: `sforge soldeer install` from `packages/contracts/`
 - Build contracts: `sforge build` (NOT `forge`) from `packages/contracts/`
 - Test contracts: `sforge test`
 - Deploy: `bun run deploy` — writes addresses to `packages/contracts/out/deploy.json`
@@ -27,6 +28,12 @@ For detailed architecture, API comparisons (ERC20 vs SRC20), event encryption fl
 
 - Directory: `0x1000000000000000000000000000000000000004` — AES key registry
 - Intelligence: `0x1000000000000000000000000000000000000005` — provider management
+
+## Dependencies
+
+- SRC20, SRC20Multicall, and ISRC20 come from `seismic-std-lib` (managed by Soldeer, from `github.com/SeismicSystems/seismic`)
+- Import as `import {SRC20} from "seismic-std-lib/SRC20.sol"`
+- Git submodules (solmate, forge-std, ds-test) remain for ERC20/test utilities
 
 ## Structure
 
