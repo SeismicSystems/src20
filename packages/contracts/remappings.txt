@@ -1,0 +1,1 @@
+seismic-std-lib/=dependencies/seismic-std-lib-0.1.0/contracts/src/seismic-std-lib/

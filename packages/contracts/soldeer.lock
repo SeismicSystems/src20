@@ -1,0 +1,5 @@
+[[dependencies]]
+name = "seismic-std-lib"
+version = "0.1.0"
+git = "https://github.com/SeismicSystems/seismic.git"
+rev = "d26bf5e2a26b85814b83f8a49a95d2be215a2783"

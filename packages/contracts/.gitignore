@@ -9,5 +9,8 @@ cache/
 # Docs
 docs/
 
+# Soldeer dependencies
+dependencies/
+
 # Dotenv file
 .env

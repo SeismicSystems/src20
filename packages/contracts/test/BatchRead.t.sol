@@ -2,8 +2,8 @@
 pragma solidity ^0.8.13;
 
 import {DSTestPlus} from "./utils/DSTestPlus.sol";
-import {SRC20} from "../src/SRC20.sol";
-import {SRC20Multicall} from "../src/SRC20Multicall.sol";
+import {SRC20} from "seismic-std-lib/SRC20.sol";
+import {SRC20Multicall} from "seismic-std-lib/SRC20Multicall.sol";
 
 contract TestSRC20 is SRC20 {
     constructor(string memory _name, string memory _symbol, uint8 _decimals) SRC20(_name, _symbol, _decimals) {}
