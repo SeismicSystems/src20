@@ -2,6 +2,8 @@
 
 Monorepo demonstrating SRC20 (shielded ERC20) vs standard ERC20. Packages in `packages/`: contracts, sender-ts, listener-ts, batch-read-ts, listener-go.
 
+For detailed architecture, API comparisons (ERC20 vs SRC20), event encryption flow, and client-side usage patterns, see @README.md.
+
 ## Build & Run
 
 - Install: `bun install:all` from repo root
