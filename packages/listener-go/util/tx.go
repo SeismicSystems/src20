@@ -11,10 +11,10 @@ import (
 	"github.com/ethereum/go-ethereum/ethclient"
 )
 
-func CreateInterface(chain Chain) *ethclient.Client {
-	client, err := ethclient.Dial(chain.RPCUrl)
+func CreateClient(rpcURL string) *ethclient.Client {
+	client, err := ethclient.Dial(rpcURL)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to connect to RPC: %v", err)
+		fmt.Fprintf(os.Stderr, "Failed to connect to RPC: %v\n", err)
 		return nil
 	}
 	return client
