@@ -438,6 +438,41 @@ cd packages/listener-go
 go run ./
 ```
 
+### Modes
+
+**Live mode** (default) - subscribes to new events via WebSocket:
+
+```bash
+# Using MODE from .env
+go run ./
+
+# Using a custom RPC
+go run ./ --rpc wss://some-rpc-url/ws
+```
+
+**Historical mode** - queries a block range via `FilterLogs`:
+
+```bash
+# Query a specific block
+go run ./ --rpc https://lyron.seismicdev.net/rpc --from 679495 --to 679495 --no-contract
+
+# Query a range, specific contract
+go run ./ --rpc https://lyron.seismicdev.net/rpc --from 679495 --to 938652 --contract 0x1234...
+
+# Query from a block to latest
+go run ./ --rpc https://lyron.seismicdev.net/rpc --from 679495 --no-contract
+```
+
+### CLI Flags
+
+| Flag             | Description                                              |
+| ---------------- | -------------------------------------------------------- |
+| `--from <block>` | Start block for historical query (enables historical mode) |
+| `--to <block>`   | End block for historical query (default: latest)         |
+| `--rpc <url>`    | Custom RPC URL (overrides MODE-based selection)          |
+| `--contract <addr>` | SRC20 contract address (overrides deploy.json)       |
+| `--no-contract`  | Match all contracts (skip deploy.json lookup)            |
+
 ---
 
 ## Expected Output
