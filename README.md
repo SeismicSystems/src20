@@ -263,7 +263,7 @@ You need our fork of the `foundry` development suite (`sfoundry`), specifically 
 
 ```bash
 # 1. Install JS dependencies
-bun install:all
+bun install
 
 # 2. Install Solidity dependencies (seismic-std-lib via Soldeer)
 cd packages/contracts && sforge soldeer install
