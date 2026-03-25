@@ -7,6 +7,6 @@ libs = ["lib", "dependencies"]
 remappings_generate = false
 
 [dependencies]
-seismic-std-lib = "0.1.1"
+seismic-std-lib = "0.1.3"
 
 # See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options

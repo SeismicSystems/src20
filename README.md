@@ -194,7 +194,8 @@ seismic-viem provides two helper functions for watching SRC20 events with automa
 When an SRC20 transfer or approval occurs, the contract emits **multiple encrypted events**:
 
 1. **To Intelligence Providers**: The amount is encrypted to each registered intelligence provider's AES key
-2. **To the Recipient/Spender**: The amount is encrypted to the recipient's (for transfers) or spender's (for approvals) registered AES key
+2. **To the Sender/Owner** *(v0.1.2+)*: The amount is encrypted to the sender's (for transfers) or owner's (for approvals) registered AES key
+3. **To the Recipient/Spender**: The amount is encrypted to the recipient's (for transfers) or spender's (for approvals) registered AES key
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
@@ -203,18 +204,35 @@ When an SRC20 transfer or approval occurs, the contract emits **multiple encrypt
 │  Event 1: Transfer(from, to, providerKeyHash, encryptedAmount)  │
 │           └─ Decryptable by: Intelligence Provider              │
 │                                                                 │
-│  Event 2: Transfer(from, to, recipientKeyHash, encryptedAmount) │
+│  Event 2: Transfer(from, to, senderKeyHash, encryptedAmount)    │
+│           └─ Decryptable by: Sender only                        │
+│                                                                 │
+│  Event 3: Transfer(from, to, recipientKeyHash, encryptedAmount) │
 │           └─ Decryptable by: Recipient only                     │
+└─────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────┐
+│                     SRC20 Approval Event                        │
+├─────────────────────────────────────────────────────────────────┤
+│  Event 1: Approval(owner, spender, providerKeyHash, encrypted)  │
+│           └─ Decryptable by: Intelligence Provider              │
+│                                                                 │
+│  Event 2: Approval(owner, spender, ownerKeyHash, encrypted)     │
+│           └─ Decryptable by: Owner only                         │
+│                                                                 │
+│  Event 3: Approval(owner, spender, spenderKeyHash, encrypted)   │
+│           └─ Decryptable by: Spender only                       │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
 ### Who Can Decrypt What?
 
-| Role                      | Can Decrypt Transfers | Can Decrypt Approvals |
-| ------------------------- | --------------------- | --------------------- |
-| **Intelligence Provider** | ✅ ALL transfers      | ✅ ALL approvals      |
-| **Recipient**             | ✅ Transfers TO them  | ✅ Approvals TO them  |
-| **Random Observer**       | ❌                    | ❌                    |
+| Role                      | Can Decrypt Transfers    | Can Decrypt Approvals    |
+| ------------------------- | ------------------------ | ------------------------ |
+| **Intelligence Provider** | ✅ ALL transfers         | ✅ ALL approvals         |
+| **Sender/Owner**          | ✅ Transfers FROM them   | ✅ Approvals BY them     |
+| **Recipient/Spender**     | ✅ Transfers TO them     | ✅ Approvals TO them     |
+| **Random Observer**       | ❌                       | ❌                       |
 
 ---
 
@@ -378,7 +396,7 @@ The SRC20 listener uses the `encryptKeyHash` field in events to filter and decry
 | Mode             | Environment Variable   | What It Decrypts                         |
 | ---------------- | ---------------------- | ---------------------------------------- |
 | `--intelligence` | `INTELLIGENCE_AES_KEY` | All transfers & approvals (provider key) |
-| `--recipient`    | `RECIPIENT_AES_KEY`    | Only events TO your address              |
+| `--recipient`    | `RECIPIENT_AES_KEY`    | Events TO and FROM your address          |
 
 See [`listener.ts`](packages/listener-ts/src/src20/listener.ts) for the implementation.
 

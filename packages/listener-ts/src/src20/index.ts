@@ -47,6 +47,9 @@ async function main() {
     "║   Transfer amounts are ENCRYPTED - requires AES key         ║",
   );
   console.log(
+    "║   Events emitted to both sender AND recipient (v0.1.3)       ║",
+  );
+  console.log(
     "╚══════════════════════════════════════════════════════════════╝",
   );
 
