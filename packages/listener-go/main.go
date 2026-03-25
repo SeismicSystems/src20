@@ -33,21 +33,20 @@ func main() {
 		os.Exit(1)
 	}
 
-	// Determine RPC URL
+	// Determine RPC URL (defaults to gcp-0 testnet)
 	var dialURL string
 	if *rpcURL != "" {
 		dialURL = *rpcURL
 	} else {
-		mode := util.RequireEnv("MODE")
-		if mode == "" {
-			fmt.Fprintf(os.Stderr, "Error: MODE is required (or use --rpc flag)\n")
-			os.Exit(1)
-		}
+		mode := os.Getenv("MODE")
 		var chain util.Chain
-		if mode == "local" {
+		switch mode {
+		case "local":
 			chain = util.Sanvil
-		} else {
-			chain = util.IntegrationChain
+		case "gcp-0":
+			chain = util.SeismicTestnetGcp0
+		default:
+			chain = util.DefaultTestnet
 		}
 		dialURL = chain.RPCUrl
 	}
