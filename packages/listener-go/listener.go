@@ -82,9 +82,13 @@ func attachEventListener(client *ethclient.Client, aesKey []byte, contractAddres
 }
 
 // queryBlockRange fetches historical Transfer and Approval events from a block range.
-func queryBlockRange(client *ethclient.Client, aesKey []byte, contractAddress string, fromBlock int64, toBlock int64) {
+func queryBlockRange(client *ethclient.Client, aesKey []byte, contractAddress string, fromBlock int64, toBlock int64, noKeyFilter bool) {
 	keyHash := aes.Keccak256Hash(aesKey)
-	fmt.Printf("DEBUG: Filtering events with encryptKeyHash = %s\n", keyHash.Hex())
+	if !noKeyFilter {
+		fmt.Printf("DEBUG: Filtering events with encryptKeyHash = %s\n", keyHash.Hex())
+	} else {
+		fmt.Printf("DEBUG: Key filter DISABLED - will fetch ALL events (many may fail to decrypt)\n")
+	}
 
 	aesGcm, err := aes.CreateAESGCM(aesKey)
 	if err != nil {
@@ -101,19 +105,30 @@ func queryBlockRange(client *ethclient.Client, aesKey []byte, contractAddress st
 		addresses = []common.Address{common.HexToAddress(contractAddress)}
 	}
 
-	// Build filter query — match both Transfer and Approval events with our keyHash
-	query := ethereum.FilterQuery{
-		FromBlock: big.NewInt(fromBlock),
-		Addresses: addresses,
-		Topics: [][]common.Hash{
+	// Build filter query
+	var topics [][]common.Hash
+	if noKeyFilter {
+		// Match all Transfer and Approval events regardless of encryptKeyHash
+		topics = [][]common.Hash{
+			{transferEventID, approvalEventID}, // match either event
+		}
+		fmt.Printf("DEBUG: Query topics filter: [eventIDs only - no key filter]\n\n")
+	} else {
+		// Match only events with our keyHash
+		topics = [][]common.Hash{
 			{transferEventID, approvalEventID}, // match either event
 			{},                                 // from/owner (any)
 			{},                                 // to/spender (any)
 			{keyHash},                          // encryptKeyHash must match our key
-		},
+		}
+		fmt.Printf("DEBUG: Query topics filter: [eventIDs, any, any, %s]\n\n", keyHash.Hex())
 	}
 
-	fmt.Printf("DEBUG: Query topics filter: [eventIDs, any, any, %s]\n\n", keyHash.Hex())
+	query := ethereum.FilterQuery{
+		FromBlock: big.NewInt(fromBlock),
+		Addresses: addresses,
+		Topics:    topics,
+	}
 
 	if toBlock >= 0 {
 		query.ToBlock = big.NewInt(toBlock)

@@ -18,6 +18,7 @@ func main() {
 	rpcURL := flag.String("rpc", "", "Custom RPC URL (overrides MODE-based selection)")
 	contractAddr := flag.String("contract", "", "SRC20 contract address (overrides deploy.json, use 'none' to match all)")
 	noContract := flag.Bool("no-contract", false, "Skip contract address filter (match all contracts)")
+	noKeyFilter := flag.Bool("no-key-filter", false, "Skip encryptKeyHash filter (show all events, even if not decryptable)")
 	flag.Parse()
 
 	util.LoadEnv()
@@ -88,8 +89,13 @@ func main() {
 		} else {
 			fmt.Printf("Contract: all (no filter)\n")
 		}
+		if *noKeyFilter {
+			fmt.Printf("Key filter: disabled (will show all events, even undecryptable ones)\n")
+		} else {
+			fmt.Printf("Key filter: enabled (only events encrypted to your key)\n")
+		}
 		fmt.Println()
-		queryBlockRange(client, aesKey, contract, *fromBlock, to)
+		queryBlockRange(client, aesKey, contract, *fromBlock, to, *noKeyFilter)
 	} else {
 		// Live mode: subscribe to new events
 		fmt.Printf("Listening for events on %s\n\n", dialURL)
