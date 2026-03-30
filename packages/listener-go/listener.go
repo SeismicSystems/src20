@@ -52,7 +52,7 @@ func attachEventListener(client *ethclient.Client, aesKey []byte, contractAddres
 				fmt.Fprintf(os.Stderr, "Error subscribing to Transfer: %v\n", err)
 				return
 			case vLog := <-logs:
-				handleTransferEvent(SRC20Abi, vLog, aesGcm)
+				handleTransferEvent(SRC20Abi, vLog, aesGcm, keyHash)
 			}
 		}
 	}()
@@ -73,7 +73,7 @@ func attachEventListener(client *ethclient.Client, aesKey []byte, contractAddres
 				fmt.Fprintf(os.Stderr, "Error subscribing to Approval: %v\n", err)
 				return
 			case vLog := <-logs:
-				handleApprovalEvent(SRC20Abi, vLog, aesGcm)
+				handleApprovalEvent(SRC20Abi, vLog, aesGcm, keyHash)
 			}
 		}
 	}()
@@ -84,6 +84,8 @@ func attachEventListener(client *ethclient.Client, aesKey []byte, contractAddres
 // queryBlockRange fetches historical Transfer and Approval events from a block range.
 func queryBlockRange(client *ethclient.Client, aesKey []byte, contractAddress string, fromBlock int64, toBlock int64) {
 	keyHash := aes.Keccak256Hash(aesKey)
+	fmt.Printf("DEBUG: Filtering events with encryptKeyHash = %s\n", keyHash.Hex())
+
 	aesGcm, err := aes.CreateAESGCM(aesKey)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error: Failed to create AES GCM: %v\n", err)
@@ -111,6 +113,8 @@ func queryBlockRange(client *ethclient.Client, aesKey []byte, contractAddress st
 		},
 	}
 
+	fmt.Printf("DEBUG: Query topics filter: [eventIDs, any, any, %s]\n\n", keyHash.Hex())
+
 	if toBlock >= 0 {
 		query.ToBlock = big.NewInt(toBlock)
 	}
@@ -135,9 +139,9 @@ func queryBlockRange(client *ethclient.Client, aesKey []byte, contractAddress st
 		eventTopic := vLog.Topics[0]
 		switch eventTopic {
 		case transferEventID:
-			handleTransferEvent(SRC20Abi, vLog, aesGcm)
+			handleTransferEvent(SRC20Abi, vLog, aesGcm, keyHash)
 		case approvalEventID:
-			handleApprovalEvent(SRC20Abi, vLog, aesGcm)
+			handleApprovalEvent(SRC20Abi, vLog, aesGcm, keyHash)
 		default:
 			fmt.Fprintf(os.Stderr, "  Unknown event topic: %s\n\n", eventTopic.Hex())
 		}
@@ -163,10 +167,19 @@ func subscribeToEvent(client *ethclient.Client, addresses []common.Address, even
 	return sub, logs
 }
 
-func handleTransferEvent(SRC20Abi *abi.ABI, vLog types.Log, aesGcm cipher.AEAD) {
+func handleTransferEvent(SRC20Abi *abi.ABI, vLog types.Log, aesGcm cipher.AEAD, expectedKeyHash common.Hash) {
 	from := common.BytesToAddress(vLog.Topics[1].Bytes())
 	to := common.BytesToAddress(vLog.Topics[2].Bytes())
 	encryptKeyHash := vLog.Topics[3]
+
+	fmt.Printf("DEBUG: Event encryptKeyHash: %s\n", encryptKeyHash.Hex())
+	fmt.Printf("DEBUG: Expected keyHash:    %s\n", expectedKeyHash.Hex())
+	if encryptKeyHash != expectedKeyHash {
+		fmt.Printf("DEBUG: ⚠️  KEY MISMATCH! Event was encrypted for a different key.\n")
+		fmt.Printf("DEBUG: This event should have been filtered out by the Topics filter.\n")
+	} else {
+		fmt.Printf("DEBUG: ✓ Key hashes match\n")
+	}
 
 	// Check for the zero-hash / empty-data case (recipient has no registered key)
 	if encryptKeyHash == (common.Hash{}) {
@@ -203,6 +216,15 @@ func handleTransferEvent(SRC20Abi *abi.ABI, vLog types.Log, aesGcm cipher.AEAD) 
 		return
 	}
 
+	fmt.Printf("DEBUG: Attempting to decrypt %d bytes of encrypted data\n", len(transferEvent.EncryptedAmount))
+	fmt.Printf("DEBUG: Encrypted bytes: 0x%x\n", transferEvent.EncryptedAmount)
+	fmt.Printf("DEBUG: Expected format: [nonce (12 bytes) | ciphertext (32 bytes) | tag (16 bytes)] = 60 bytes total\n")
+	if len(transferEvent.EncryptedAmount) == 60 {
+		fmt.Printf("DEBUG:   Nonce: 0x%x\n", transferEvent.EncryptedAmount[:12])
+		fmt.Printf("DEBUG:   Ciphertext: 0x%x\n", transferEvent.EncryptedAmount[12:44])
+		fmt.Printf("DEBUG:   Auth tag: 0x%x\n", transferEvent.EncryptedAmount[44:60])
+	}
+
 	amount, err := aes.DecryptAESGCM(transferEvent.EncryptedAmount, aesGcm)
 	if err != nil {
 		fmt.Fprintf(os.Stderr,
@@ -210,7 +232,10 @@ func handleTransferEvent(SRC20Abi *abi.ABI, vLog types.Log, aesGcm cipher.AEAD) 
 				"    from: %s\n"+
 				"    to: %s\n"+
 				"    encryptKeyHash: %s\n"+
-				"    encryptedAmount (%d bytes): 0x%x\n\n",
+				"    encryptedAmount (%d bytes): 0x%x\n"+
+				"DEBUG: Key mismatch or corrupted data?\n"+
+				"    - If encryptKeyHash doesn't match your key hash, this event was encrypted for someone else\n"+
+				"    - If encryptKeyHash matches but decryption fails, check AES key or data format\n\n",
 			vLog.BlockNumber, vLog.TxHash.Hex(), err,
 			from, to, encryptKeyHash.Hex(),
 			len(transferEvent.EncryptedAmount), transferEvent.EncryptedAmount,
@@ -218,6 +243,7 @@ func handleTransferEvent(SRC20Abi *abi.ABI, vLog types.Log, aesGcm cipher.AEAD) 
 		return
 	}
 
+	fmt.Printf("DEBUG: ✓ Decryption successful!\n")
 	fmt.Printf(
 		"Transfer\n\n"+
 			"    from: %s\n"+
@@ -228,10 +254,18 @@ func handleTransferEvent(SRC20Abi *abi.ABI, vLog types.Log, aesGcm cipher.AEAD) 
 	)
 }
 
-func handleApprovalEvent(SRC20Abi *abi.ABI, vLog types.Log, aesGcm cipher.AEAD) {
+func handleApprovalEvent(SRC20Abi *abi.ABI, vLog types.Log, aesGcm cipher.AEAD, expectedKeyHash common.Hash) {
 	owner := common.BytesToAddress(vLog.Topics[1].Bytes())
 	spender := common.BytesToAddress(vLog.Topics[2].Bytes())
 	encryptKeyHash := vLog.Topics[3]
+
+	fmt.Printf("DEBUG: Event encryptKeyHash: %s\n", encryptKeyHash.Hex())
+	fmt.Printf("DEBUG: Expected keyHash:    %s\n", expectedKeyHash.Hex())
+	if encryptKeyHash != expectedKeyHash {
+		fmt.Printf("DEBUG: ⚠️  KEY MISMATCH! Event was encrypted for a different key.\n")
+	} else {
+		fmt.Printf("DEBUG: ✓ Key hashes match\n")
+	}
 
 	// Check for the zero-hash / empty-data case (spender has no registered key)
 	if encryptKeyHash == (common.Hash{}) {
@@ -268,6 +302,14 @@ func handleApprovalEvent(SRC20Abi *abi.ABI, vLog types.Log, aesGcm cipher.AEAD) 
 		return
 	}
 
+	fmt.Printf("DEBUG: Attempting to decrypt %d bytes of encrypted data\n", len(approvalEvent.EncryptedAmount))
+	fmt.Printf("DEBUG: Encrypted bytes: 0x%x\n", approvalEvent.EncryptedAmount)
+	if len(approvalEvent.EncryptedAmount) == 60 {
+		fmt.Printf("DEBUG:   Nonce: 0x%x\n", approvalEvent.EncryptedAmount[:12])
+		fmt.Printf("DEBUG:   Ciphertext: 0x%x\n", approvalEvent.EncryptedAmount[12:44])
+		fmt.Printf("DEBUG:   Auth tag: 0x%x\n", approvalEvent.EncryptedAmount[44:60])
+	}
+
 	amount, err := aes.DecryptAESGCM(approvalEvent.EncryptedAmount, aesGcm)
 	if err != nil {
 		fmt.Fprintf(os.Stderr,
@@ -275,7 +317,10 @@ func handleApprovalEvent(SRC20Abi *abi.ABI, vLog types.Log, aesGcm cipher.AEAD) 
 				"    owner: %s\n"+
 				"    spender: %s\n"+
 				"    encryptKeyHash: %s\n"+
-				"    encryptedAmount (%d bytes): 0x%x\n\n",
+				"    encryptedAmount (%d bytes): 0x%x\n"+
+				"DEBUG: Key mismatch or corrupted data?\n"+
+				"    - If encryptKeyHash doesn't match your key hash, this event was encrypted for someone else\n"+
+				"    - If encryptKeyHash matches but decryption fails, check AES key or data format\n\n",
 			vLog.BlockNumber, vLog.TxHash.Hex(), err,
 			owner, spender, encryptKeyHash.Hex(),
 			len(approvalEvent.EncryptedAmount), approvalEvent.EncryptedAmount,
@@ -283,6 +328,7 @@ func handleApprovalEvent(SRC20Abi *abi.ABI, vLog types.Log, aesGcm cipher.AEAD) 
 		return
 	}
 
+	fmt.Printf("DEBUG: ✓ Decryption successful!\n")
 	fmt.Printf(
 		"Approval\n\n"+
 			"    owner: %s\n"+

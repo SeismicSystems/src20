@@ -7,6 +7,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/SeismicSystems/aes"
 	"listener-go/util"
 )
 
@@ -32,6 +33,11 @@ func main() {
 		fmt.Fprintf(os.Stderr, "Error: Failed to convert AES key string to bytes: %v\n", err)
 		os.Exit(1)
 	}
+
+	// Debug: Show the key hash we're using for filtering
+	keyHash := aes.Keccak256Hash(aesKey)
+	fmt.Printf("DEBUG: Your INTELLIGENCE_AES_KEY hash: %s\n", keyHash.Hex())
+	fmt.Printf("DEBUG: This is the encryptKeyHash we're filtering for\n\n")
 
 	// Determine RPC URL (defaults to gcp-0 testnet)
 	var dialURL string
